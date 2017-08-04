@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.ColorInt;
+import android.util.ArraySet;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -25,8 +26,10 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.misc.FlashlightController;
@@ -49,16 +52,18 @@ public class Toggles
     private BroadcastReceiver mSoundBC;
     private BroadcastReceiver mBluetoothBC;
 
-    private static final Set<String> defaultOrder = new HashSet<String>() {{
+    private static final ArrayList<String> defaultOrder = new ArrayList<String>() {{
         add(SOUND_TOGGLE);
         add(WIFI_TOGGLE);
         add(FLASHLIGHT_TOGGLE);
         add(BLUETOOTH_TOGGLE);
     }};
+
     private ImageView bluetooth;
     private ImageView flash;
     private ImageView sound;
     private ImageView wifi;
+
     private ContentObserver mWiFiObserver;
     private ContentObserver mSoundObserver;
     private ContentObserver mFlashObserver;
@@ -67,6 +72,7 @@ public class Toggles
     public Toggles(Context context) {
         mContext = context;
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_toggles, null, false);
+        mView.setLayoutDirection(LinearLayout.LAYOUT_DIRECTION_RTL);
         mParams.gravity = Gravity.CENTER;
 
         addInSetOrder();
@@ -134,10 +140,12 @@ public class Toggles
     }
 
     private void addInSetOrder() {
-        Set<String> set = PreferenceManager.getDefaultSharedPreferences(mContext).getStringSet("toggleOrder", defaultOrder);
+        ArrayList<String> set = defaultOrder;
 
-        for (String name : set) {
-            switch (name) {
+        for (String name : set)
+        {
+            switch (name)
+            {
                 case WIFI_TOGGLE:
                     setWiFiState();
                     break;
@@ -151,11 +159,6 @@ public class Toggles
                     setBluetoothState();
                     break;
             }
-//            Space space = new Space(mContext);
-//            TableLayout.LayoutParams params = new TableLayout.LayoutParams(0, 1, 1);
-//            space.setLayoutParams(params);
-//
-//            mView.addView(space);
         }
     }
 
@@ -163,7 +166,7 @@ public class Toggles
         final WifiManager wm = (WifiManager) mContext.getSystemService(WIFI_SERVICE);
 
         wifi = new ImageView(mContext);
-        mView.addView(wifi);
+        mView.addView(wifi, 0);
         wifi.setLayoutParams(mParams);
 
         setWiFiColor();
@@ -214,7 +217,7 @@ public class Toggles
         final AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
 
         sound = new ImageView(mContext);
-        mView.addView(sound);
+        mView.addView(sound, 0);
         sound.setLayoutParams(mParams);
 
         setSoundColor();
@@ -278,10 +281,37 @@ public class Toggles
 
     private void setFlashlightState() {
         flash = new ImageView(mContext);
-        mView.addView(flash);
+        mView.addView(flash, 0);
         flash.setLayoutParams(mParams);
 
         final FlashlightController controller = new FlashlightController(mContext);
+        controller.addListener(new FlashlightController.FlashlightListener()
+        {
+            @Override
+            public void onFlashlightChanged(boolean enabled)
+            {
+                new Handler(mContext.getMainLooper()).post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        setFlashlightToggleState(flash, controller);
+                    }
+                });
+            }
+
+            @Override
+            public void onFlashlightError()
+            {
+
+            }
+
+            @Override
+            public void onFlashlightAvailabilityChanged(boolean available)
+            {
+
+            }
+        });
 
         setFlashlightColor();
         setFlashlightToggleState(flash, controller);
@@ -296,8 +326,6 @@ public class Toggles
                 } else {
                     controller.setFlashlight(true);
                 }
-
-                setFlashlightToggleState(flash, controller);
             }
         });
     }
@@ -318,7 +346,7 @@ public class Toggles
 
     private void setBluetoothState() {
         bluetooth = new ImageView(mContext);
-        mView.addView(bluetooth);
+        mView.addView(bluetooth, 0);
         bluetooth.setLayoutParams(mParams);
 
         final BluetoothAdapter ba = BluetoothAdapter.getDefaultAdapter();

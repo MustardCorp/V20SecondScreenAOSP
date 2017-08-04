@@ -31,7 +31,7 @@ public class SignBoardService extends Service
     private Toggles mToggles;
     private Display display;
 
-    private boolean isStock = true;
+    private boolean isStock = false; //should be false unless debugging on stock V20 ROM
 
     public SignBoardService()
     {
@@ -63,7 +63,10 @@ public class SignBoardService extends Service
                 0,
                 0,
                 WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | WindowManager.LayoutParams.FLAG_LAYOUT_IN_OVERSCAN,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS |
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_OVERSCAN |
+                        WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
                 PixelFormat.TRANSLUCENT);
         // At it to window manager for display, it will be printed over any thing
         windowManager.addView(screenLayout, params);
@@ -134,7 +137,7 @@ public class SignBoardService extends Service
         params.width = 1040;
         params.gravity = Gravity.TOP | Gravity.RIGHT;
         params.x = 0;
-        params.y = -Util.getStatusBarHeight(this)-(isStock ? 0 : 160);
+        params.y = -(isStock ? 0 : 160);
 
         windowManager.updateViewLayout(screenLayout, params);
     }
@@ -158,7 +161,7 @@ public class SignBoardService extends Service
         params.width = 160;
         params.gravity = Gravity.TOP | Gravity.LEFT;
         params.x = -(isStock ? 0 : 160);
-        params.y = -Util.getStatusBarHeight(this);
+        params.y = 0;
 
         windowManager.updateViewLayout(screenLayout, params);
     }

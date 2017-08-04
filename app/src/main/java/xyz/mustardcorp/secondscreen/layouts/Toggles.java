@@ -198,9 +198,8 @@ public class Toggles
     }
 
     private void setWiFiColor() {
-        int pref = Settings.Global.getInt(mContext.getContentResolver(), "wifi_color", 0xffffff);
-        @ColorInt int color = Color.rgb(Color.red(pref), Color.green(pref), Color.blue(pref));
-        wifi.setImageTintList(ColorStateList.valueOf(color));
+        int pref = Settings.Global.getInt(mContext.getContentResolver(), "wifi_color", Color.WHITE);
+        wifi.setImageTintList(ColorStateList.valueOf(pref));
     }
 
     private void setWiFiToggleState(ImageView wifi) {
@@ -258,9 +257,8 @@ public class Toggles
     }
 
     private void setSoundColor() {
-        int pref = Settings.Global.getInt(mContext.getContentResolver(), "sound_color", 0xffffff);
-        @ColorInt int color = Color.rgb(Color.red(pref), Color.green(pref), Color.blue(pref));
-        sound.setImageTintList(ColorStateList.valueOf(color));
+        int pref = Settings.Global.getInt(mContext.getContentResolver(), "sound_color", Color.WHITE);
+        sound.setImageTintList(ColorStateList.valueOf(pref));
     }
 
     private void setSoundToggleState(ImageView sound) {
@@ -331,9 +329,8 @@ public class Toggles
     }
 
     private void setFlashlightColor() {
-        int pref = Settings.Global.getInt(mContext.getContentResolver(), "flash_color", 0xffffff);
-        @ColorInt int color = Color.rgb(Color.red(pref), Color.green(pref), Color.blue(pref));
-        flash.setImageTintList(ColorStateList.valueOf(color));
+        int pref = Settings.Global.getInt(mContext.getContentResolver(), "flash_color", Color.WHITE);
+        flash.setImageTintList(ColorStateList.valueOf(pref));
     }
 
     private void setFlashlightToggleState(ImageView flashlight, FlashlightController controller) {
@@ -380,9 +377,8 @@ public class Toggles
     }
 
     private void setBluetoothColor() {
-        int pref = Settings.Global.getInt(mContext.getContentResolver(), "bt_color", 0xffffff);
-        @ColorInt int color = Color.rgb(Color.red(pref), Color.green(pref), Color.blue(pref));
-        bluetooth.setImageTintList(ColorStateList.valueOf(color));
+        int pref = Settings.Global.getInt(mContext.getContentResolver(), "bt_color", Color.WHITE);
+        bluetooth.setImageTintList(ColorStateList.valueOf(pref));
     }
 
     private void setBluetoothToggleState(ImageView bluetooth) {

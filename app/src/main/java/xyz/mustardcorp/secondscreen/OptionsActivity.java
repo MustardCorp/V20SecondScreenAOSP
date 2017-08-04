@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -12,12 +13,15 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.provider.Settings;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
 import android.view.MenuItem;
+
+import com.jaredrummler.android.colorpicker.ColorPreference;
 
 import java.util.List;
 
@@ -94,13 +98,10 @@ public class OptionsActivity extends AppCompatPreferenceActivity
     protected boolean isValidFragment(String fragmentName)
     {
         return PreferenceFragment.class.getName().equals(fragmentName)
-                || OtherPreferenceFragment.class.getName().equals(fragmentName);
+                || OtherPreferenceFragment.class.getName().equals(fragmentName)
+                || ColorPreferenceFragment.class.getName().equals(fragmentName);
     }
 
-    /**
-     * This fragment shows data and sync preferences only. It is used when the
-     * activity is showing a two-pane settings UI.
-     */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static class OtherPreferenceFragment extends PreferenceFragment
     {
@@ -123,6 +124,51 @@ public class OptionsActivity extends AppCompatPreferenceActivity
                     return true;
                 }
             });
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item)
+        {
+            int id = item.getItemId();
+            if (id == android.R.id.home)
+            {
+                startActivity(new Intent(getActivity(), OptionsActivity.class));
+                return true;
+            }
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public static class ColorPreferenceFragment extends PreferenceFragment
+    {
+        @Override
+        public void onCreate(Bundle savedInstanceState)
+        {
+            super.onCreate(savedInstanceState);
+            addPreferencesFromResource(R.xml.pref_colors);
+            setHasOptionsMenu(true);
+
+            for (int i = 0; i < getPreferenceScreen().getRootAdapter().getCount(); i++) {
+                Object o = getPreferenceScreen().getRootAdapter().getItem(i);
+
+                if (o instanceof ColorPreference) {
+                    ColorPreference preference = (ColorPreference) o;
+
+                    int colorVal = Settings.Global.getInt(getContext().getContentResolver(), preference.getKey(), Color.WHITE);
+                    preference.saveValue(colorVal);
+
+                    preference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener()
+                    {
+                        @Override
+                        public boolean onPreferenceChange(Preference preference, Object o)
+                        {
+                            Settings.Global.putInt(getContext().getContentResolver(), preference.getKey(), Integer.valueOf(o.toString()));
+                            return true;
+                        }
+                    });
+                }
+            }
         }
 
         @Override

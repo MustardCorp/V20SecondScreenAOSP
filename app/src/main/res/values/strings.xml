@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Second Screen</string>
     <string name="title_activity_options">Second Screen</string>
+
+    <string name="sound_toggle">Sound Toggle</string>
+    <string name="wifi_toggle">WiFi Toggle</string>
+    <string name="flash_toggle">Flashlight Toggle</string>
+    <string name="bt_toggle">Bluetooth Toggle</string>
+    <string name="color">Color</string>
 </resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/sound_toggle"
+        android:key="sound_color" />
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/wifi_toggle"
+        android:key="wifi_color" />
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/flash_toggle"
+        android:key="flash_color" />
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/bt_toggle"
+        android:key="bt_color" />
+
+</PreferenceScreen>

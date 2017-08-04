@@ -6,4 +6,8 @@
         android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$OtherPreferenceFragment"
         android:title="options" />
 
+    <header
+        android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$ColorPreferenceFragment"
+        android:title="@string/color" />
+
 </preference-headers>

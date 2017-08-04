@@ -1,0 +1,9 @@
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- These settings headers are only used on tablets. -->
+
+    <header
+        android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$OtherPreferenceFragment"
+        android:title="options" />
+
+</preference-headers>

@@ -1,0 +1,8 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreference
+        android:title="Force Restart Service"
+        android:key="should_force_start"
+        android:defaultValue="true" />
+
+</PreferenceScreen>

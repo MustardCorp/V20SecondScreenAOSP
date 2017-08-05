@@ -68,12 +68,22 @@ public class Toggles
     private ContentObserver mSoundObserver;
     private ContentObserver mFlashObserver;
     private ContentObserver mBluetoothObserver;
+    private final Display display;
 
     public Toggles(Context context) {
         mContext = context;
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_toggles, null, false);
         mView.setLayoutDirection(LinearLayout.LAYOUT_DIRECTION_RTL);
         mParams.gravity = Gravity.CENTER;
+
+        display = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+        int rotation = display.getRotation();
+        if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
+            mView.setOrientation(LinearLayout.VERTICAL);
+        } else {
+            mView.setOrientation(LinearLayout.HORIZONTAL);
+        }
 
         addInSetOrder();
         registerContentObservers();
@@ -100,8 +110,6 @@ public class Toggles
             @Override
             public void onOrientationChanged(int i)
             {
-                Display display = ((WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-
                 switch (display.getRotation()) {
                     case Surface.ROTATION_0:
                     case Surface.ROTATION_180:
@@ -112,6 +120,8 @@ public class Toggles
                         setHorizontalOrientation();
                         break;
                 }
+
+                addInSetOrder();
             }
         };
         listener.enable();
@@ -141,6 +151,19 @@ public class Toggles
 
     private void addInSetOrder() {
         ArrayList<String> set = defaultOrder;
+
+        mView.removeAllViews();
+
+        boolean shouldReverse = display.getRotation() == Surface.ROTATION_270;
+
+        if (shouldReverse) {
+            ArrayList<String> reverseSet = new ArrayList<>();
+            for (int i = set.size() - 1; i >= 0; i--) {
+                reverseSet.add(set.get(i));
+            }
+
+            set = reverseSet;
+        }
 
         for (String name : set)
         {

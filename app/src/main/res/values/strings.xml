@@ -7,4 +7,6 @@
     <string name="flash_toggle">Flashlight Toggle</string>
     <string name="bt_toggle">Bluetooth Toggle</string>
     <string name="color">Color</string>
+
+    <string name="play_something">Play Something!</string>
 </resources>

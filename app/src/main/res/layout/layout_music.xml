@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="1040px"
+    android:layout_height="160px">
+
+    <ImageView
+        android:id="@+id/skip_back"
+        android:layout_width="wrap_content"
+        android:layout_height="120px"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        app:srcCompat="@drawable/ic_skip_previous_black_24dp" />
+
+    <ImageView
+        android:id="@+id/play_pause"
+        android:layout_width="wrap_content"
+        android:layout_height="120px"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        app:srcCompat="@drawable/ic_play_arrow_black_24dp" />
+
+    <ImageView
+        android:id="@+id/skip_forward"
+        android:layout_width="wrap_content"
+        android:layout_height="120px"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        app:srcCompat="@drawable/ic_skip_next_black_24dp" />
+
+    <TextView
+        android:id="@+id/song_info"
+        android:layout_width="500px"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_weight="1"
+        android:ellipsize="marquee"
+        android:singleLine="true"
+        android:text="@string/play_something"
+        android:textSize="18sp" />
+</LinearLayout>

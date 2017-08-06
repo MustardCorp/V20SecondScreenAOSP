@@ -6,7 +6,17 @@
     <string name="wifi_toggle">WiFi Toggle</string>
     <string name="flash_toggle">Flashlight Toggle</string>
     <string name="bt_toggle">Bluetooth Toggle</string>
+    <string name="music_back">Skip Back</string>
+    <string name="music_pp">Play/Pause</string>
+    <string name="music_forward">Skip Forward</string>
+    <string name="music_text">Song Title</string>
+    <string name="ss_background">Background</string>
+
+    <string name="app_key">App_Key</string>
+    <string name="def_key">Def_Key</string>
+
     <string name="color">Color</string>
+    <string name="unknown">Unknown</string>
 
     <string name="play_something">Play Something!</string>
 </resources>

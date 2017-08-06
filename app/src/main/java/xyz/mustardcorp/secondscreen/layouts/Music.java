@@ -25,17 +25,18 @@ import java.util.ArrayList;
 
 import xyz.mustardcorp.secondscreen.R;
 
-public class Music
+public class Music extends BaseLayout
 {
     private Context mContext;
     private LinearLayout mView;
-    private final Display display;
-    private final ArrayList<View> originalView;
-    private final AudioManager audioManager;
+    private  Display display;
+    private  ArrayList<View> originalView;
+    private  AudioManager audioManager;
     private ContentObserver stateObserver;
     private BroadcastReceiver playingMusicReceiver;
 
     public Music(Context context) {
+        super(context);
         mContext = context;
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_music, null, false);
         display = ((WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
@@ -159,7 +160,7 @@ public class Music
         return audioManager.isMusicActive();
     }
 
-    private void setOrientationListener() {
+    public void setOrientationListener() {
         OrientationEventListener listener = new OrientationEventListener(mContext)
         {
             @Override
@@ -189,6 +190,7 @@ public class Music
         params.height = 160;
         params.width = 1040;
 
+        mView.findViewById(R.id.song_info).setRotation(0f);
         mView.setLayoutDirection(LinearLayout.LAYOUT_DIRECTION_LTR);
 
         mView.setLayoutParams(params);
@@ -201,6 +203,8 @@ public class Music
 
         params.height = 1040;
         params.width = 160;
+
+        mView.findViewById(R.id.song_info).setRotation(90f);
 
         mView.setLayoutParams(params);
         mView.setOrientation(LinearLayout.VERTICAL);

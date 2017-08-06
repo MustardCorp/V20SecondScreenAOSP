@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="1040px"
+    android:layout_height="160px">
+
+    <ImageView
+        android:id="@+id/app_1_id"
+        android:layout_width="120px"
+        android:layout_height="120px"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_add_circle_white_24dp" />
+
+    <ImageView
+        android:id="@+id/app_2_id"
+        android:layout_width="120px"
+        android:layout_height="120px"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_add_circle_white_24dp" />
+
+    <ImageView
+        android:id="@+id/app_3_id"
+        android:layout_width="120px"
+        android:layout_height="120px"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_add_circle_white_24dp" />
+
+    <ImageView
+        android:id="@+id/app_4_id"
+        android:layout_width="120px"
+        android:layout_height="120px"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_add_circle_white_24dp" />
+
+    <ImageView
+        android:id="@+id/app_5_id"
+        android:layout_width="120px"
+        android:layout_height="120px"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_add_circle_white_24dp" />
+
+    <ImageView
+        android:id="@+id/app_6_id"
+        android:layout_width="120px"
+        android:layout_height="120px"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_add_circle_white_24dp" />
+
+</LinearLayout>

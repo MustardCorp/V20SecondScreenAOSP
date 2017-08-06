@@ -9,12 +9,10 @@ import android.content.res.ColorStateList;
 import android.database.ContentObserver;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.annotation.ColorInt;
-import android.util.ArraySet;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -27,21 +25,23 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
+
+import javax.microedition.khronos.opengles.GL;
 
 import xyz.mustardcorp.secondscreen.R;
-import xyz.mustardcorp.secondscreen.misc.FlashlightController;
 
 import static android.content.Context.WIFI_SERVICE;
 
-public class Toggles
+public class Toggles extends BaseLayout
 {
     public static final String SOUND_TOGGLE = "sound";
     public static final String WIFI_TOGGLE = "wifi";
     public static final String FLASHLIGHT_TOGGLE = "flashlight";
     public static final String BLUETOOTH_TOGGLE = "bluetooth";
+    public static final String SOUND_KEY = "sound_color";
+    public static final String WIFI_KEY = "wifi_color";
+    public static final String FLASHLIGHT_KEY = "flash_color";
+    public static final String BT_KEY = "bt_color";
     public static final int SIZE = 150;
 
     private LinearLayout.LayoutParams mParams = new LinearLayout.LayoutParams(SIZE, SIZE, 1);
@@ -64,13 +64,12 @@ public class Toggles
     private ImageView sound;
     private ImageView wifi;
 
-    private ContentObserver mWiFiObserver;
-    private ContentObserver mSoundObserver;
-    private ContentObserver mFlashObserver;
-    private ContentObserver mBluetoothObserver;
+    private ContentObserver mObserver;
+
     private final Display display;
 
     public Toggles(Context context) {
+        super(context);
         mContext = context;
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_toggles, null, false);
         mView.setLayoutDirection(LinearLayout.LAYOUT_DIRECTION_RTL);
@@ -98,13 +97,10 @@ public class Toggles
         if (mWiFiBC != null) mContext.unregisterReceiver(mWiFiBC);
         if (mSoundBC != null) mContext.unregisterReceiver(mSoundBC);
         if (mBluetoothBC != null) mContext.unregisterReceiver(mBluetoothBC);
-        mContext.getContentResolver().unregisterContentObserver(mWiFiObserver);
-        mContext.getContentResolver().unregisterContentObserver(mSoundObserver);
-        mContext.getContentResolver().unregisterContentObserver(mFlashObserver);
-        mContext.getContentResolver().unregisterContentObserver(mBluetoothObserver);
+        mContext.getContentResolver().unregisterContentObserver(mObserver);
     }
 
-    private void setOrientationListener() {
+    public void setOrientationListener() {
         OrientationEventListener listener = new OrientationEventListener(mContext)
         {
             @Override
@@ -218,6 +214,16 @@ public class Toggles
                 wm.setWifiEnabled(!wm.isWifiEnabled());
             }
         });
+
+        wifi.setOnLongClickListener(new View.OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View view)
+            {
+                mContext.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                return true;
+            }
+        });
     }
 
     private void setWiFiColor() {
@@ -277,6 +283,16 @@ public class Toggles
                 }
             }
         });
+
+        sound.setOnLongClickListener(new View.OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View view)
+            {
+                mContext.startActivity(new Intent(Settings.ACTION_SOUND_SETTINGS));
+                return true;
+            }
+        });
     }
 
     private void setSoundColor() {
@@ -305,50 +321,50 @@ public class Toggles
         mView.addView(flash, 0);
         flash.setLayoutParams(mParams);
 
-        final FlashlightController controller = new FlashlightController(mContext);
-        controller.addListener(new FlashlightController.FlashlightListener()
-        {
-            @Override
-            public void onFlashlightChanged(boolean enabled)
-            {
-                new Handler(mContext.getMainLooper()).post(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        setFlashlightToggleState(flash, controller);
-                    }
-                });
-            }
-
-            @Override
-            public void onFlashlightError()
-            {
-
-            }
-
-            @Override
-            public void onFlashlightAvailabilityChanged(boolean available)
-            {
-
-            }
-        });
-
+//        final FlashlightController controller = new FlashlightController(mContext);
+//        controller.addListener(new FlashlightController.FlashlightListener()
+//        {
+//            @Override
+//            public void onFlashlightChanged(final boolean enabled)
+//            {
+//                new Handler(mContext.getMainLooper()).post(new Runnable()
+//                {
+//                    @Override
+//                    public void run()
+//                    {
+//                        setFlashlightToggleState(flash, enabled);
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onFlashlightError()
+//            {
+//
+//            }
+//
+//            @Override
+//            public void onFlashlightAvailabilityChanged(boolean available)
+//            {
+//
+//            }
+//        });
+//
         setFlashlightColor();
-        setFlashlightToggleState(flash, controller);
+        setFlashlightToggleState(flash, false);
 
-        flash.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                if (controller.isEnabled()) {
-                    controller.setFlashlight(false);
-                } else {
-                    controller.setFlashlight(true);
-                }
-            }
-        });
+//        flash.setOnClickListener(new View.OnClickListener()
+//        {
+//            @Override
+//            public void onClick(View view)
+//            {
+//                if (controller.isEnabled()) {
+//                    controller.setFlashlight(false);
+//                } else {
+//                    controller.setFlashlight(true);
+//                }
+//            }
+//        });
     }
 
     private void setFlashlightColor() {
@@ -356,8 +372,8 @@ public class Toggles
         flash.setImageTintList(ColorStateList.valueOf(pref));
     }
 
-    private void setFlashlightToggleState(ImageView flashlight, FlashlightController controller) {
-        if (controller.isEnabled()) {
+    private void setFlashlightToggleState(ImageView flashlight, boolean enabled) {
+        if (enabled) {
             flashlight.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_flash_on_black_24dp, null));
         } else {
             flashlight.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_flash_off_black_24dp, null));
@@ -397,6 +413,16 @@ public class Toggles
                 else ba.enable();
             }
         });
+
+        bluetooth.setOnLongClickListener(new View.OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View view)
+            {
+                mContext.startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
+                return true;
+            }
+        });
     }
 
     private void setBluetoothColor() {
@@ -417,49 +443,25 @@ public class Toggles
     private void registerContentObservers() {
         Handler handler = new Handler();
 
-        mWiFiObserver = new ContentObserver(handler)
+        mObserver = new ContentObserver(handler)
         {
             @Override
-            public void onChange(boolean selfChange)
+            public void onChange(boolean selfChange, Uri uri)
             {
-                setWiFiColor();
+                Uri wifi = Settings.Global.getUriFor(WIFI_KEY);
+                Uri sound = Settings.Global.getUriFor(SOUND_KEY);
+                Uri flash = Settings.Global.getUriFor(FLASHLIGHT_KEY);
+                Uri bt = Settings.Global.getUriFor(BT_KEY);
+
+                if (uri.equals(wifi)) setWiFiColor();
+                if (uri.equals(sound)) setSoundColor();
+                if (uri.equals(flash)) setFlashlightColor();
+                if (uri.equals(bt)) setBluetoothColor();
+
                 super.onChange(selfChange);
             }
         };
 
-        mSoundObserver = new ContentObserver(handler)
-        {
-            @Override
-            public void onChange(boolean selfChange)
-            {
-                setSoundColor();
-                super.onChange(selfChange);
-            }
-        };
-
-        mFlashObserver = new ContentObserver(handler)
-        {
-            @Override
-            public void onChange(boolean selfChange)
-            {
-                setFlashlightColor();
-                super.onChange(selfChange);
-            }
-        };
-
-        mBluetoothObserver = new ContentObserver(handler)
-        {
-            @Override
-            public void onChange(boolean selfChange)
-            {
-                setBluetoothColor();
-                super.onChange(selfChange);
-            }
-        };
-
-        mContext.getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, mWiFiObserver);
-        mContext.getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, mSoundObserver);
-        mContext.getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, mFlashObserver);
-        mContext.getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, mBluetoothObserver);
+        mContext.getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, mObserver);
     }
 }

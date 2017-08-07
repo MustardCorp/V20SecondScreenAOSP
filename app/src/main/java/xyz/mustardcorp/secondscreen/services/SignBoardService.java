@@ -1,8 +1,10 @@
 package xyz.mustardcorp.secondscreen.services;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
@@ -10,6 +12,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.support.v4.content.PermissionChecker;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -128,6 +131,10 @@ public class SignBoardService extends Service
         setContentObserver();
 
         boolean shouldBeSticky = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(Values.SHOULD_FORCE_START, true);
+
+        if (PermissionChecker.checkCallingOrSelfPermission(this, Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE) != PackageManager.PERMISSION_GRANTED) {
+            startActivity(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
+        }
 
         return shouldBeSticky ? Service.START_STICKY : Service.START_NOT_STICKY;
     }

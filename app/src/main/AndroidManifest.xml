@@ -10,14 +10,19 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission
         android:name="android.permission.BLUETOOTH"
         android:required="false" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
     <uses-permission
         android:name="android.permission.INTERNAL_SYSTEM_WINDOW"
         android:protectionLevel="signature" />
+    <uses-permission android:name="android.permission.STATUS_BAR_SERVICE" />
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.flash" />
@@ -33,6 +38,13 @@
             android:name=".services.SignBoardService"
             android:enabled="true"
             android:exported="true" />
+
+        <service android:name=".layouts.Information$NotificationListener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
 
         <receiver
             android:name=".receivers.BootReceiver"
@@ -69,10 +81,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.AddAppShortcutActivity"
-            android:excludeFromRecents="true">
-
-        </activity>
+        <activity
+            android:name=".activities.AddAppShortcutActivity"
+            android:excludeFromRecents="true"></activity>
+        <activity android:name=".activities.RequestPermissionsActivity"></activity>
     </application>
 
 </manifest>

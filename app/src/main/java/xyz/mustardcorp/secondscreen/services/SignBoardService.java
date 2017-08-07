@@ -10,8 +10,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -21,8 +19,9 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import com.mcs.viewpager.OrientationViewPager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +30,7 @@ import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.custom.CustomViewPager;
 import xyz.mustardcorp.secondscreen.layouts.AppLauncher;
 import xyz.mustardcorp.secondscreen.layouts.BaseLayout;
+import xyz.mustardcorp.secondscreen.layouts.Information;
 import xyz.mustardcorp.secondscreen.layouts.Music;
 import xyz.mustardcorp.secondscreen.layouts.Toggles;
 import xyz.mustardcorp.secondscreen.misc.Util;
@@ -46,6 +46,7 @@ public class SignBoardService extends Service
     private BaseLayout mToggles;
     private BaseLayout mMusic;
     private BaseLayout mLauncher;
+    private BaseLayout mInfo;
 
     private Display display;
 
@@ -75,17 +76,20 @@ public class SignBoardService extends Service
         mToggles = new Toggles(this);
         mMusic = new Music(this);
         mLauncher = new AppLauncher(this);
+        mInfo = new Information(this);
 
         mAvailablePages.put("toggles", mToggles);
         mAvailablePages.put("music", mMusic);
         mAvailablePages.put("launcher", mLauncher);
+        mAvailablePages.put("info", mInfo);
 
         display = ((WindowManager)getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-        CustomPagerAdapter adapter = new CustomPagerAdapter(this);
+        CustomPagerAdapter adapter = new CustomPagerAdapter(this, display.getRotation() == Surface.ROTATION_90, -1);
 
         screenLayout = (CustomViewPager) LayoutInflater.from(this).inflate(R.layout.layout_main, null, false);
         screenLayout.setAdapter(adapter);
+        if (display.getRotation() == Surface.ROTATION_90) screenLayout.setCurrentItem(screenLayout.getChildCount() - 1);
         screenLayout.setBackgroundColor(Settings.Global.getInt(getContentResolver(), "ss_color", Color.BLACK));
 
         // Setup layout parameter
@@ -107,16 +111,16 @@ public class SignBoardService extends Service
 
         switch (display.getRotation()) {
             case Surface.ROTATION_0:
-                setNormalOrientation();
+                setNormalOrientation(Surface.ROTATION_0);
                 break;
             case Surface.ROTATION_90:
-                setHorizontalRightOrientation();
+                setHorizontalRightOrientation(Surface.ROTATION_0);
                 break;
             case Surface.ROTATION_180:
-                setUpsideDownOrientation();
+                setUpsideDownOrientation(Surface.ROTATION_0);
                 break;
             case Surface.ROTATION_270:
-                setHorizontalLeftOrientation();
+                setHorizontalLeftOrientation(Surface.ROTATION_0);
                 break;
         }
 
@@ -147,29 +151,36 @@ public class SignBoardService extends Service
     private void setupOrientationListener() {
         OrientationEventListener listener = new OrientationEventListener(this)
         {
+            private int orientation = Surface.ROTATION_0;
+
             @Override
             public void onOrientationChanged(int i)
             {
-                switch (display.getRotation()) {
-                    case Surface.ROTATION_0:
-                        setNormalOrientation();
-                        break;
-                    case Surface.ROTATION_270:
-                        setHorizontalLeftOrientation();
-                        break;
-                    case Surface.ROTATION_90:
-                        setHorizontalRightOrientation();
-                        break;
-                    case Surface.ROTATION_180:
-                        setUpsideDownOrientation();
-                        break;
+                if (display.getRotation() != orientation)
+                {
+                    switch (display.getRotation())
+                    {
+                        case Surface.ROTATION_0:
+                            setNormalOrientation(orientation);
+                            break;
+                        case Surface.ROTATION_270:
+                            setHorizontalLeftOrientation(orientation);
+                            break;
+                        case Surface.ROTATION_90:
+                            setHorizontalRightOrientation(orientation);
+                            break;
+                        case Surface.ROTATION_180:
+                            setUpsideDownOrientation(orientation);
+                            break;
+                    }
+                    orientation = display.getRotation();
                 }
             }
         };
         listener.enable();
     }
 
-    private void setNormalOrientation() {
+    private void setNormalOrientation(int previousOrientation) {
         WindowManager.LayoutParams params = (WindowManager.LayoutParams) screenLayout.getLayoutParams();
 
         params.height = 160;
@@ -178,10 +189,21 @@ public class SignBoardService extends Service
         params.x = 0;
         params.y = -Util.getStatusBarHeight(this)-(isStock ? 0 : 160);
 
+        int position;
+
+        if (previousOrientation == Surface.ROTATION_90) {
+            if (screenLayout.getCurrentItem() == 0) position = screenLayout.getChildCount() + 1; //I have no idea why this is needed, but it is...
+            else position = screenLayout.getChildCount() - screenLayout.getCurrentItem();
+        }
+        else position = screenLayout.getCurrentItem();
+
+        screenLayout.setAdapter(new CustomPagerAdapter(this, false, position));
+        screenLayout.setCurrentItem(position);
+        screenLayout.setOrientation(CustomViewPager.ORIENTATION_HORIZONTAL);
         windowManager.updateViewLayout(screenLayout, params);
     }
 
-    private void setHorizontalLeftOrientation() {
+    private void setHorizontalLeftOrientation(int previousOrientation) {
         WindowManager.LayoutParams params = (WindowManager.LayoutParams) screenLayout.getLayoutParams();
 
         params.height = 1040;
@@ -190,10 +212,20 @@ public class SignBoardService extends Service
         params.x = -Util.getNavBarHeight(this)-(isStock ? 0 : 160);
         params.y = 0;
 
+        int position;
+        if (previousOrientation == Surface.ROTATION_90) {
+            if (screenLayout.getCurrentItem() == 0) position = screenLayout.getChildCount() + 1; //I have no idea why this is needed, but it is...
+            else position = screenLayout.getChildCount() - screenLayout.getCurrentItem();
+        }
+        else position = screenLayout.getCurrentItem();
+
+        screenLayout.setAdapter(new CustomPagerAdapter(this, false, position));
+        screenLayout.setCurrentItem(position);
+        screenLayout.setOrientation(CustomViewPager.ORIENTATION_VERTICAL);
         windowManager.updateViewLayout(screenLayout, params);
     }
 
-    private void setHorizontalRightOrientation() {
+    private void setHorizontalRightOrientation(int previousOrientation) {
         WindowManager.LayoutParams params = (WindowManager.LayoutParams) screenLayout.getLayoutParams();
 
         params.height = 1040;
@@ -202,10 +234,20 @@ public class SignBoardService extends Service
         params.x = -(isStock ? 0 : 160);
         params.y = -Util.getStatusBarHeight(this);
 
+        int position;
+        if (previousOrientation != Surface.ROTATION_90) {
+            if (screenLayout.getCurrentItem() == 0) position = screenLayout.getChildCount() + 1; //I have no idea why this is needed, but it is...
+            else position = screenLayout.getChildCount() - screenLayout.getCurrentItem();
+        }
+        else position = screenLayout.getCurrentItem();
+
+        screenLayout.setAdapter(new CustomPagerAdapter(this, true, position));
+        screenLayout.setCurrentItem(position);
+        screenLayout.setOrientation(CustomViewPager.ORIENTATION_VERTICAL);
         windowManager.updateViewLayout(screenLayout, params);
     }
 
-    private void setUpsideDownOrientation() {
+    private void setUpsideDownOrientation(int previousOrientation) {
         WindowManager.LayoutParams params = (WindowManager.LayoutParams) screenLayout.getLayoutParams();
 
         params.height = 160;
@@ -214,6 +256,16 @@ public class SignBoardService extends Service
         params.x = 0;
         params.y = -Util.getNavBarHeight(this)-(isStock ? 0 : 160);
 
+        int position;
+        if (previousOrientation == Surface.ROTATION_90) {
+            if (screenLayout.getCurrentItem() == 0) position = screenLayout.getChildCount() + 1; //I have no idea why this is needed, but it is...
+            else position = screenLayout.getChildCount() - screenLayout.getCurrentItem();
+        }
+        else position = screenLayout.getCurrentItem();
+
+        screenLayout.setAdapter(new CustomPagerAdapter(this, false, position));
+        screenLayout.setCurrentItem(position);
+        screenLayout.setOrientation(CustomViewPager.ORIENTATION_HORIZONTAL);
         windowManager.updateViewLayout(screenLayout, params);
     }
 
@@ -230,34 +282,53 @@ public class SignBoardService extends Service
         getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, observer);
     }
 
-    public class CustomPagerAdapter extends PagerAdapter
+    public class CustomPagerAdapter extends com.mcs.viewpager.PagerAdapter
     {
         private Context mContext;
+        private boolean shouldReverse;
 
         private ArrayList<View> currentViews = new ArrayList<>();
         private ArrayList<String> defaultLoad = new ArrayList<String>() {{
+            add("info");
             add("toggles");
             add("music");
             add("launcher");
         }};
 
-        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        OrientationViewPager.LayoutParams layoutParams = new OrientationViewPager.LayoutParams();
+        private final ArrayList<String> load;
 
-        public CustomPagerAdapter(Context context) {
+        public CustomPagerAdapter(Context context, boolean shouldReverse, int position) {
             mContext = context;
 
-            ArrayList<String> load = defaultLoad;
-            for (String s : load) {
-                ((BaseLayout) mAvailablePages.get(s)).getView().setLayoutParams(layoutParams);
-                currentViews.add(((BaseLayout) mAvailablePages.get(s)).getView());
-                notifyDataSetChanged();
+            load = defaultLoad;
+
+            this.shouldReverse = shouldReverse;
+
+            if (shouldReverse) {
+                for (int i = load.size() - 1; i >= 0; i--) {
+                    String s = load.get(i);
+                    ((BaseLayout) mAvailablePages.get(s)).getView().setLayoutParams(layoutParams);
+                    currentViews.add(((BaseLayout) mAvailablePages.get(s)).getView());
+                    notifyDataSetChanged();
+                }
+            } else {
+                for (String s : load)
+                {
+                    ((BaseLayout) mAvailablePages.get(s)).getView().setLayoutParams(layoutParams);
+                    currentViews.add(((BaseLayout) mAvailablePages.get(s)).getView());
+                }
             }
+
+            notifyDataSetChanged();
+            if (position > -1) screenLayout.setCurrentItem(position);
         }
 
         @Override
         public Object instantiateItem(ViewGroup collection, int position) {
             View view = currentViews.get(position);
             collection.addView(view);
+
             return view;
         }
 

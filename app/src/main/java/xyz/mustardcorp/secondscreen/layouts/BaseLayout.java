@@ -3,16 +3,16 @@ package xyz.mustardcorp.secondscreen.layouts;
 import android.content.Context;
 import android.view.View;
 
-/**
- * Created by Zacha on 8/5/2017.
- */
-
 public abstract class BaseLayout
 {
     private Context mContext;
 
     public BaseLayout(Context context) {
         mContext = context;
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     public abstract View getView();

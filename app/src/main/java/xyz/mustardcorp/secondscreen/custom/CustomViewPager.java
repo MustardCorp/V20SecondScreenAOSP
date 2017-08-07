@@ -9,14 +9,24 @@ import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.HorizontalScrollView;
 
-public class CustomViewPager extends ViewPager
+import com.mcs.viewpager.OrientationViewPager;
+
+import static android.view.View.OVER_SCROLL_NEVER;
+
+
+public class CustomViewPager extends OrientationViewPager
 {
+    public static final int ORIENTATION_HORIZONTAL = 0;
+    public static final int ORIENTATION_VERTICAL = 1;
 
     private Display display;
+    private int mOrientation = ORIENTATION_HORIZONTAL;
 
     public CustomViewPager(Context context) {
         super(context);
+        setOffscreenPageLimit(10000000);
         init();
     }
 
@@ -25,101 +35,83 @@ public class CustomViewPager extends ViewPager
         init();
     }
 
+    public void setOrientation(int orientation) {
+        mOrientation = orientation;
+
+        super.setOrientation(orientation);
+
+//        if (mOrientation == ORIENTATION_VERTICAL) setPageTransformer(true, new VerticalPageTransformer());
+//        else setPageTransformer(false, null);
+    }
+
+    public int getOrientation() {
+        return mOrientation;
+    }
+
     private void init() {
         display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-        boolean isLandscape = display.getRotation() == Surface.ROTATION_90 || display.getRotation() == Surface.ROTATION_270;
-        // The majority of the magic happens here
-//        if (isLandscape) {
-//            setPageTransformer(true, new VerticalPageTransformer());
-//            setLayoutDirection(ViewPager.LAYOUT_DIRECTION_RTL);
-//        }
-        // The easiest way to get rid of the overscroll drawing that happens on the left and right
         setOverScrollMode(OVER_SCROLL_NEVER);
-        setOrientationCorrections();
     }
 
-    private void setOrientationCorrections() {
-        OrientationEventListener listener = new OrientationEventListener(getContext())
-        {
-            @Override
-            public void onOrientationChanged(int i)
-            {
-                Display display = ((WindowManager)getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-
-                switch (display.getRotation()) {
-                    case Surface.ROTATION_0:
-                    case Surface.ROTATION_180:
-//                        setPageTransformer(true, null);
-                        break;
-                    case Surface.ROTATION_90:
-                    case Surface.ROTATION_270:
-//                        setPageTransformer(true, new VerticalPageTransformer());
-//                        setLayoutDirection(ViewPager.LAYOUT_DIRECTION_RTL);
-                        break;
-                }
-            }
-        };
-        listener.enable();
-    }
-
-    private class VerticalPageTransformer implements ViewPager.PageTransformer {
-
-        @Override
-        public void transformPage(View view, float position) {
-            if (position < -1)
-            { // [-Infinity,-1)
-                // This page is way off-screen to the left.
-                view.setAlpha(0);
-
-            } else if (position <= 1)
-            { // [-1,1]
-                view.setAlpha(1);
-
-                // Counteract the default slide transition
-                view.setTranslationX(view.getWidth() * -position);
-
-                //set Y position to swipe in from top
-                float yPosition = position * view.getHeight();
-                view.setTranslationY(yPosition);
-
-            } else
-            { // (1,+Infinity]
-                // This page is way off-screen to the right.
-                view.setAlpha(0);
-            }
-        }
-    }
+//    private class VerticalPageTransformer implements ViewPager.PageTransformer {
+//
+//        @Override
+//        public void transformPage(View view, float position) {
+////            // Counteract the default slide transition
+////            view.setTranslationX(view.getWidth() * -position);
+////
+////            //set Y position to swipe in from top
+////            float yPosition = position * view.getHeight();
+////            view.setTranslationY(yPosition);
+//        }
+//    }
 
 //    /**
 //     * Swaps the X and Y coordinates of your touch event.
 //     */
 //    private MotionEvent swapXY(MotionEvent ev) {
-//
-//        if (display.getRotation() == Surface.ROTATION_90 || display.getRotation() == Surface.ROTATION_270)
-//        {
-//            float width = getWidth();
-//            float height = getHeight();
-//
-//            float newX = ev.getY() * width / height;
-//            float newY = ev.getX() * height / width;
-//
-//            ev.setLocation(newX, newY);
-////            ev.setLocation(ev.getY(), ev.getX());
-//        }
+////        if (mOrientation == ORIENTATION_VERTICAL && (ev.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_MOVE)
+////        {
+////            float width = getWidth();
+////            float height = getHeight();
+////
+////            float newX = ev.getY() * width / height;
+////            float newY = ev.getX() * height / width;
+////
+////            ev.setLocation(newX, newY);
+////        }
 //
 //        return ev;
 //    }
-//
+
 //    @Override
 //    public boolean onInterceptTouchEvent(MotionEvent ev){
-//        boolean intercepted = super.onInterceptTouchEvent(swapXY(ev));
-//        swapXY(ev); // return touch coordinates to original reference frame for any child views
-//        return intercepted;
+////        if ((ev.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_MOVE) {
+////            boolean intercepted = super.onInterceptTouchEvent(swapXY(ev));
+////            swapXY(ev); // return touch coordinates to original reference frame for any child views
+////            return intercepted;
+////        } else {
+////            return super.onInterceptTouchEvent(ev);
+////        }
+//        return super.onInterceptTouchEvent(ev);
 //    }
 //
 //    @Override
 //    public boolean onTouchEvent(MotionEvent ev) {
-//        return super.onTouchEvent(swapXY(ev));
+////        if ((ev.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_MOVE) {
+////            return super.onTouchEvent(swapXY(ev));
+////        } else if ((ev.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_DOWN) {
+////            performClick();
+////        }
+////
+////        return super.onTouchEvent(ev);
+//        return super.onTouchEvent(ev);
+//    }
+//
+//    @Override
+//    public boolean performClick()
+//    {
+//        return super.performClick();
 //    }
 }

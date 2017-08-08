@@ -9,15 +9,23 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.database.ContentObserver;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
@@ -36,30 +44,43 @@ import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextClock;
 import android.widget.TextView;
 
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.activities.RequestPermissionsActivity;
+import xyz.mustardcorp.secondscreen.misc.Util;
 import xyz.mustardcorp.secondscreen.misc.Values;
+import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
 import static android.content.Context.BATTERY_SERVICE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
 
 public class Information extends BaseLayout
 {
-    private static LinearLayout mView;
-    private static LinearLayout mNotifsView;
+    private LinearLayout mView;
+    private LinearLayout mNotifsView;
     private BroadcastReceiver actionChange;
     private Display display;
     private ArrayList<View> originalLayout = new ArrayList<>();
     private BroadcastReceiver localReceiver;
+    private ContentObserver mObserver;
+    private final PowerManager.WakeLock wakeLock;
+    private final PowerManager manager;
 
     public Information(Context context) {
         super(context);
@@ -68,8 +89,15 @@ public class Information extends BaseLayout
         mNotifsView = mView.findViewById(R.id.notification_layout);
         display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
+        manager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
+        wakeLock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "aod_service");
+
         for (int i = 0; i < mView.getChildCount(); i++) {
             originalLayout.add(mView.getChildAt(i));
+        }
+
+        if (getContext().checkCallingOrSelfPermission(Manifest.permission.ACCESS_NOTIFICATION_POLICY) != PackageManager.PERMISSION_GRANTED) {
+            getContext().startActivity(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
         }
 
         setProperOrientation();
@@ -77,6 +105,11 @@ public class Information extends BaseLayout
         registerObserversAndReceivers();
         batteryValues();
         wifiLevels();
+
+        TextClock textClock = mView.findViewById(R.id.current_time);
+        textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
+
+        setContentObserver();
 
         LocalBroadcastManager.getInstance(getContext()).sendBroadcast(new Intent(Values.ACTION_INFORMATION_ADDED));
     }
@@ -106,6 +139,57 @@ public class Information extends BaseLayout
     {
         getContext().unregisterReceiver(actionChange);
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(localReceiver);
+        getContext().getContentResolver().unregisterContentObserver(mObserver);
+    }
+
+    private void setContentObserver() {
+        mObserver = new ContentObserver(new Handler())
+        {
+            @Override
+            public void onChange(boolean selfChange, Uri uri)
+            {
+                Log.e("Something changed", uri.toString());
+
+                Uri notifs = Settings.Global.getUriFor("notification_icon_color");
+                Uri wifi = Settings.Global.getUriFor("wifi_signal_color");
+                Uri mobile = Settings.Global.getUriFor("cell_signal_color");
+                Uri battery = Settings.Global.getUriFor("battery_color");
+                Uri clock = Settings.Global.getUriFor("clock_color");
+
+                if (uri.equals(notifs)) {
+                    LinearLayout layout = mView.findViewById(R.id.notification_layout);
+                    for (int i = 0; i < layout.getChildCount(); i++) {
+                        ImageView view = (ImageView) layout.getChildAt(i);
+                        view.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "notification_icon_color", Color.WHITE), PorterDuff.Mode.SRC_IN);
+                    }
+                }
+
+                if (uri.equals(wifi)) {
+                    ImageView wifiView = mView.findViewById(R.id.wifi_level);
+                    wifiView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "wifi_signal_color", Color.WHITE), PorterDuff.Mode.SRC_IN);
+                }
+
+                if (uri.equals(mobile)) {
+                    ImageView mobileView = mView.findViewById(R.id.signal_level);
+                    mobileView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "cell_signal_color", Color.WHITE), PorterDuff.Mode.SRC_IN);
+                }
+
+                if (uri.equals(battery)) {
+                    TextView batteryView = mView.findViewById(R.id.battery_percent);
+                    batteryView.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE));
+                    batteryView.setCompoundDrawableTintList(ColorStateList.valueOf(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE)));
+                }
+
+                if (uri.equals(clock)) {
+                    TextClock textClock = mView.findViewById(R.id.current_time);
+                    textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
+                }
+
+                super.onChange(selfChange, uri);
+            }
+        };
+
+        getContext().getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, mObserver);
     }
 
     private void setProperOrientation() {
@@ -150,6 +234,8 @@ public class Information extends BaseLayout
         changeFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         changeFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
         changeFilter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
+        changeFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        changeFilter.addAction(Intent.ACTION_SCREEN_ON);
 
         actionChange = new BroadcastReceiver()
         {
@@ -173,6 +259,23 @@ public class Information extends BaseLayout
                 if (action.equals(TelephonyManager.ACTION_PHONE_STATE_CHANGED)) {
                     cellLevels();
                 }
+
+//                if (action.equals(Intent.ACTION_SCREEN_OFF)) {
+//                    if (!wakeLock.isHeld()) wakeLock.acquire();
+//                    WindowManager.LayoutParams params = (WindowManager.LayoutParams) ((SignBoardService) getContext()).getViewPager().getLayoutParams();
+//                    params.flags |= WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+//                    params.screenBrightness = 0;
+//                    ((SignBoardService) getContext()).getViewPager().setLayoutParams(params);
+//                    updateClockOnWakelock();
+//                }
+//
+//                if (action.equals(Intent.ACTION_SCREEN_ON)) {
+//                    if (wakeLock.isHeld()) wakeLock.release();
+//                    WindowManager.LayoutParams params = (WindowManager.LayoutParams) ((SignBoardService) getContext()).getViewPager().getLayoutParams();
+//                    params.flags &= ~WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+//                    params.screenBrightness = -1;
+//                    ((SignBoardService) getContext()).getViewPager().setLayoutParams(params);
+//                }
 
                 showAirplaneModeIfNeeded();
             }
@@ -198,6 +301,12 @@ public class Information extends BaseLayout
                             Notification notification = notifications.get(i);
                             Drawable icon = notification.getSmallIcon().loadDrawable(getContext());
                             ImageView imageView = new ImageView(getContext());
+
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                            params.height = (int) Util.pxToDp(getContext(), 24);
+                            params.width = (int) Util.pxToDp(getContext(), 24);
+
+                            imageView.setLayoutParams(params);
                             imageView.setImageDrawable(icon);
                             imageView.setImageTintList(ColorStateList.valueOf(Settings.Global.getInt(getContext().getContentResolver(), "notification_icon_color", Color.WHITE)));
 
@@ -267,6 +376,7 @@ public class Information extends BaseLayout
         Drawable icon = getContext().getResources().getDrawable(resId, null);
         batteryLevel.setCompoundDrawablesWithIntrinsicBounds(null, icon, null, null);
         batteryLevel.setCompoundDrawableTintList(ColorStateList.valueOf(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE)));
+        batteryLevel.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE));
     }
 
     private void showAirplaneModeIfNeeded() {
@@ -304,7 +414,7 @@ public class Information extends BaseLayout
                     break;
             }
             wifiView.setImageDrawable(getContext().getResources().getDrawable(resId, null));
-            wifiView.setImageTintList(ColorStateList.valueOf(Settings.Global.getInt(getContext().getContentResolver(), "wifi_signal_color", Color.WHITE)));
+            wifiView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "wifi_signal_color", Color.WHITE));
             wifiView.setVisibility(View.VISIBLE);
         } else {
             wifiView.setImageDrawable(null);
@@ -317,44 +427,56 @@ public class Information extends BaseLayout
         ImageView cellView = mView.findViewById(R.id.signal_level);
 
         try {
-            CellInfo info = tm.getAllCellInfo().get(0);
-            int strength = 0;
+            if (tm.getAllCellInfo().size() > 0)
+            {
+                CellInfo info = tm.getAllCellInfo().get(0);
+                int strength = 0;
 
-            if (info instanceof CellInfoLte) strength = ((CellInfoLte) info).getCellSignalStrength().getLevel();
-            if (info instanceof CellInfoWcdma) strength = ((CellInfoWcdma) info).getCellSignalStrength().getLevel();
-            if (info instanceof CellInfoCdma) strength = ((CellInfoCdma) info).getCellSignalStrength().getLevel();
-            if (info instanceof CellInfoGsm) strength = ((CellInfoGsm) info).getCellSignalStrength().getLevel();
+                if (info instanceof CellInfoLte)
+                    strength = ((CellInfoLte) info).getCellSignalStrength().getLevel();
+                if (info instanceof CellInfoWcdma)
+                    strength = ((CellInfoWcdma) info).getCellSignalStrength().getLevel();
+                if (info instanceof CellInfoCdma)
+                    strength = ((CellInfoCdma) info).getCellSignalStrength().getLevel();
+                if (info instanceof CellInfoGsm)
+                    strength = ((CellInfoGsm) info).getCellSignalStrength().getLevel();
 
-            int resId = R.drawable.ic_signal_cellular_4_bar_black_24dp;
-            if (tm.getSimState() == TelephonyManager.SIM_STATE_READY && Settings.Global.getInt(getContext().getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 0) {
-                switch (strength) {
-                    case 0:
-                        resId = info.isRegistered() ? R.drawable.ic_signal_cellular_0_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_0_bar_black_24dp;
-                        break;
-                    case 1:
-                        resId = info.isRegistered() ? R.drawable.ic_signal_cellular_1_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_1_bar_black_24dp;
-                        break;
-                    case 2:
-                        resId = info.isRegistered() ? R.drawable.ic_signal_cellular_2_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_2_bar_black_24dp;
-                        break;
-                    case 3:
-                        resId = info.isRegistered() ? R.drawable.ic_signal_cellular_3_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_3_bar_black_24dp;
-                        break;
-                    case 4:
-                        resId = info.isRegistered() ? R.drawable.ic_signal_cellular_4_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_4_bar_black_24dp;
-                        break;
+                int resId = R.drawable.ic_signal_cellular_4_bar_black_24dp;
+                if (tm.getSimState() == TelephonyManager.SIM_STATE_READY && Settings.Global.getInt(getContext().getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 0)
+                {
+                    switch (strength)
+                    {
+                        case 0:
+                            resId = info.isRegistered() ? R.drawable.ic_signal_cellular_0_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_0_bar_black_24dp;
+                            break;
+                        case 1:
+                            resId = info.isRegistered() ? R.drawable.ic_signal_cellular_1_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_1_bar_black_24dp;
+                            break;
+                        case 2:
+                            resId = info.isRegistered() ? R.drawable.ic_signal_cellular_2_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_2_bar_black_24dp;
+                            break;
+                        case 3:
+                            resId = info.isRegistered() ? R.drawable.ic_signal_cellular_3_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_3_bar_black_24dp;
+                            break;
+                        case 4:
+                            resId = info.isRegistered() ? R.drawable.ic_signal_cellular_4_bar_black_24dp : R.drawable.ic_signal_cellular_connected_no_internet_4_bar_black_24dp;
+                            break;
+                    }
+                    cellView.setImageDrawable(getContext().getResources().getDrawable(resId, null));
+                    cellView.setVisibility(View.VISIBLE);
+                } else if (Settings.Global.getInt(getContext().getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 1)
+                {
+                    cellView.setImageDrawable(null);
+                    cellView.setVisibility(View.GONE);
+                } else if (tm.getSimState() != TelephonyManager.SIM_STATE_READY)
+                {
+                    cellView.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_signal_cellular_no_sim_black_24dp, null));
+                    cellView.setVisibility(View.VISIBLE);
                 }
-                cellView.setImageDrawable(getContext().getResources().getDrawable(resId, null));
-                cellView.setVisibility(View.VISIBLE);
-            } else if (Settings.Global.getInt(getContext().getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 1) {
-                cellView.setImageDrawable(null);
-                cellView.setVisibility(View.GONE);
-            } else if (tm.getSimState() != TelephonyManager.SIM_STATE_READY) {
-                cellView.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_signal_cellular_no_sim_black_24dp, null));
-                cellView.setVisibility(View.VISIBLE);
+            } else {
+                cellView.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_signal_cellular_null_black_24dp, null));
             }
-
-            cellView.setImageTintList(ColorStateList.valueOf(Settings.Global.getInt(getContext().getContentResolver(), "cell_signal_color", Color.WHITE)));
+            cellView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "cell_signal_color", Color.WHITE));
         } catch (SecurityException e) {
             requestCoarsePerm();
         }
@@ -365,6 +487,46 @@ public class Information extends BaseLayout
         reqPerms.putExtra("permission", Manifest.permission.ACCESS_COARSE_LOCATION);
 
         getContext().startActivity(reqPerms);
+    }
+
+    private void updateClockOnWakelock() {
+        Thread thread = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                final TextClock textClock = mView.findViewById(R.id.current_time);
+                Calendar cal = Calendar.getInstance();
+                while (wakeLock.isHeld()) {
+                    Date currentLocalTime = cal.getTime();
+                    DateFormat date = new SimpleDateFormat("hh:mm a", Locale.US);
+                    final String localTime = date.format(currentLocalTime);
+
+                    new Handler(Looper.getMainLooper()).post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            textClock.setText(localTime);
+                            PowerManager.WakeLock wakeLock = manager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "temp_wake");
+                            if (!textClock.getText().equals(localTime)) {
+                                wakeLock.acquire();
+                                wakeLock.release();
+
+                            }
+                        }
+                    });
+
+                    try {
+                        Log.e("MustardCorp WakeLock", "WakeLock Running");
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        thread.start();
     }
 
     public static class NotificationListener extends NotificationListenerService {
@@ -419,7 +581,9 @@ public class Information extends BaseLayout
         private void reAddNotifs() {
             StatusBarNotification[] notifs = getActiveNotifications();
             notifNames = new ArrayList<>();
+            ArrayList<String> notifGroups = new ArrayList<>();
 
+            outerloop:
             for (StatusBarNotification notification : notifs) {
                 Notification notif = notification.getNotification();
                 int importance = notif.priority;
@@ -445,8 +609,16 @@ public class Information extends BaseLayout
 
                     Log.e("MustardCorp", Arrays.toString(getCurrentRanking().getOrderedKeys()));
 
+                    Log.e("MustardCorp", imp + "");
+                    Log.e("MustardCorp Group", notif.getGroup() + "GROUP");
+
+                    if (notif.getGroup() != null && notifGroups.contains(notif.getGroup())) {
+                        continue;
+                    }
+
                     if (imp > 1) {
                         notifNames.add(notif);
+                        notifGroups.add(notif.getGroup());
                     }
 
                 } catch (Exception e) {

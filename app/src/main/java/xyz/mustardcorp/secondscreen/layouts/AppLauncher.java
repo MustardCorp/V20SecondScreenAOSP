@@ -33,6 +33,8 @@ import java.util.List;
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.activities.AddAppShortcutActivity;
 
+import static xyz.mustardcorp.secondscreen.misc.Util.openApp;
+
 public class AppLauncher extends BaseLayout implements View.OnClickListener, View.OnLongClickListener
 {
     public static final String APP_1 = "app_1_id";
@@ -308,21 +310,5 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
             mContext.startActivity(intent);
             return true;
         } else return false;
-    }
-
-    public static boolean openApp(Context context, String packageName) {
-        PackageManager manager = context.getPackageManager();
-        try {
-            Intent i = manager.getLaunchIntentForPackage(packageName);
-            if (i == null) {
-                return false;
-                //throw new PackageManager.NameNotFoundException();
-            }
-            i.addCategory(Intent.CATEGORY_LAUNCHER);
-            context.startActivity(i);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 }

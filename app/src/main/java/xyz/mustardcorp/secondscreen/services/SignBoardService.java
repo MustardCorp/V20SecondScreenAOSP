@@ -2,17 +2,22 @@ package xyz.mustardcorp.secondscreen.services;
 
 import android.Manifest;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.content.PermissionChecker;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -35,6 +40,7 @@ import xyz.mustardcorp.secondscreen.layouts.AppLauncher;
 import xyz.mustardcorp.secondscreen.layouts.BaseLayout;
 import xyz.mustardcorp.secondscreen.layouts.Information;
 import xyz.mustardcorp.secondscreen.layouts.Music;
+import xyz.mustardcorp.secondscreen.layouts.Recents;
 import xyz.mustardcorp.secondscreen.layouts.Toggles;
 import xyz.mustardcorp.secondscreen.misc.Util;
 import xyz.mustardcorp.secondscreen.misc.Values;
@@ -50,12 +56,12 @@ public class SignBoardService extends Service
     private BaseLayout mMusic;
     private BaseLayout mLauncher;
     private BaseLayout mInfo;
+    private BaseLayout mRecents;
 
     private Display display;
 
     private boolean isStock = false; //should be false unless debugging on stock V20 ROM
 
-    private HashMap<String, Object> mAvailablePages = new HashMap<>();
     private ContentObserver observer;
 
     public SignBoardService()
@@ -75,16 +81,6 @@ public class SignBoardService extends Service
         Log.i(TAG, "SignBoard Service Started!");
 
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-
-        mToggles = new Toggles(this);
-        mMusic = new Music(this);
-        mLauncher = new AppLauncher(this);
-        mInfo = new Information(this);
-
-        mAvailablePages.put("toggles", mToggles);
-        mAvailablePages.put("music", mMusic);
-        mAvailablePages.put("launcher", mLauncher);
-        mAvailablePages.put("info", mInfo);
 
         display = ((WindowManager)getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
@@ -136,6 +132,10 @@ public class SignBoardService extends Service
             startActivity(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
         }
 
+        if (PermissionChecker.checkCallingOrSelfPermission(this, Manifest.permission.PACKAGE_USAGE_STATS) != PackageManager.PERMISSION_GRANTED) {
+            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+        }
+
         return shouldBeSticky ? Service.START_STICKY : Service.START_NOT_STICKY;
     }
 
@@ -148,9 +148,11 @@ public class SignBoardService extends Service
         // Make sure to remove it when you are done, else it will stick there until you reboot
         // Do keep track of same reference of view you added, don't mess with that
         windowManager.removeView(screenLayout);
-        mToggles.onDestroy();
-        mMusic.onDestroy();
-        mLauncher.onDestroy();
+        if (mToggles != null) mToggles.onDestroy();
+        if (mMusic != null) mMusic.onDestroy();
+        if (mLauncher != null) mLauncher.onDestroy();
+        if (mInfo != null) mInfo.onDestroy();
+        if (mRecents != null) mRecents.onDestroy();
 
         getContentResolver().unregisterContentObserver(observer);
     }
@@ -280,9 +282,19 @@ public class SignBoardService extends Service
         observer = new ContentObserver(new Handler())
         {
             @Override
-            public void onChange(boolean selfChange)
+            public void onChange(boolean selfChange, Uri uri)
             {
-                screenLayout.setBackgroundColor(Settings.Global.getInt(getContentResolver(), "ss_color", Color.BLACK));
+                Uri ssColor = Settings.Global.getUriFor("ss_color");
+                Uri savedViews = Settings.Global.getUriFor("saved_views");
+
+                if (uri.equals(ssColor)) {
+                    screenLayout.setBackgroundColor(Settings.Global.getInt(getContentResolver(), "ss_color", Color.BLACK));
+                }
+
+                if (uri.equals(savedViews)) {
+                    CustomPagerAdapter oldAdapter = (CustomPagerAdapter) screenLayout.getAdapter();
+                    screenLayout.setAdapter(new CustomPagerAdapter(SignBoardService.this, oldAdapter.getShouldReverse(), oldAdapter.getPosition()));
+                }
             }
         };
 
@@ -293,9 +305,12 @@ public class SignBoardService extends Service
     {
         private Context mContext;
         private boolean shouldReverse;
+        private int position;
+        private HashMap<String, Object> mAvailablePages = new HashMap<>();
 
         private ArrayList<View> currentViews = new ArrayList<>();
         private ArrayList<String> defaultLoad = new ArrayList<String>() {{
+            add("recents");
             add("info");
             add("toggles");
             add("music");
@@ -307,10 +322,31 @@ public class SignBoardService extends Service
 
         public CustomPagerAdapter(Context context, boolean shouldReverse, int position) {
             mContext = context;
-
-            load = defaultLoad;
-
             this.shouldReverse = shouldReverse;
+            this.position = position;
+
+            load = Util.parseSavedViews(mContext, defaultLoad);
+
+            if (load.contains("toggles")) {
+                mToggles = new Toggles(mContext);
+                mAvailablePages.put("toggles", mToggles);
+            }
+            if (load.contains("music")) {
+                mMusic = new Music(mContext);
+                mAvailablePages.put("music", mMusic);
+            }
+            if (load.contains("launcher")) {
+                mLauncher = new AppLauncher(mContext);
+                mAvailablePages.put("launcher", mLauncher);
+            }
+            if (load.contains("info")) {
+                mInfo = new Information(mContext);
+                mAvailablePages.put("info", mInfo);
+            }
+            if (load.contains("recents")) {
+                mRecents = new Recents(context);
+                mAvailablePages.put("recents", mRecents);
+            }
 
             if (shouldReverse) {
                 for (int i = load.size() - 1; i >= 0; i--) {
@@ -357,6 +393,14 @@ public class SignBoardService extends Service
         @Override
         public CharSequence getPageTitle(int position) {
             return "";
+        }
+
+        public boolean getShouldReverse() {
+            return shouldReverse;
+        }
+
+        public int getPosition() {
+            return position;
         }
     }
 }

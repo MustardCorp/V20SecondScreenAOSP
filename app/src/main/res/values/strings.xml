@@ -10,6 +10,11 @@
     <string name="music_pp">Play/Pause</string>
     <string name="music_forward">Skip Forward</string>
     <string name="music_text">Song Title</string>
+    <string name="notifications_color">Notification Icons</string>
+    <string name="wifi_color">WiFi Icon</string>
+    <string name="mobile_color">Mobile Icon</string>
+    <string name="battery_color">Battery Info</string>
+    <string name="clock_color">Clock</string>
     <string name="ss_background">Background</string>
 
     <string name="app_key">App_Key</string>

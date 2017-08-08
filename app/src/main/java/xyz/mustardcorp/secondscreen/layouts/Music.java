@@ -160,7 +160,6 @@ public class Music extends BaseLayout
         return audioManager.isMusicActive();
     }
 
-    @Override
     public void setOrientationListener() {
         OrientationEventListener listener = new OrientationEventListener(mContext)
         {

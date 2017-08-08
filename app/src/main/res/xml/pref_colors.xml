@@ -37,4 +37,24 @@
         android:title="@string/ss_background"
         android:key="ss_color" />
 
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/notifications_color"
+        android:key="notification_icon_color" />
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/wifi_color"
+        android:key="wifi_signal_color" />
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/mobile_color"
+        android:key="cell_signal_color" />
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/battery_color"
+        android:key="battery_color" />
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/clock_color"
+        android:key="clock_color" />
+
 </PreferenceScreen>

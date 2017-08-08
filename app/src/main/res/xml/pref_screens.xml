@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreference
+        android:title="Information"
+        android:key="info" />
+
+    <SwitchPreference
+        android:title="Toggles"
+        android:key="toggles" />
+
+    <SwitchPreference
+        android:title="Music"
+        android:key="music" />
+
+    <SwitchPreference
+        android:title="App Launcher"
+        android:key="launcher" />
+
+</PreferenceScreen>

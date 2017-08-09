@@ -71,7 +71,7 @@ public class AddAppShortcutActivity extends AppCompatActivity
         protected void onPostExecute(Void aVoid)
         {
             mContext.get().findViewById(R.id.apps_loading).setVisibility(View.GONE);
-            RecyclerView recyclerView = mContext.get().findViewById(R.id.app_list_rv);
+            RecyclerView recyclerView = (RecyclerView) mContext.get().findViewById(R.id.app_list_rv);
             recyclerView.setVisibility(View.VISIBLE);
             LinearLayoutManager layoutManager = new LinearLayoutManager(mContext.get());
             recyclerView.setLayoutManager(layoutManager);

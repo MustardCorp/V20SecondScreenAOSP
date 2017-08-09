@@ -5,6 +5,7 @@ import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -35,6 +36,8 @@ public class Recents extends BaseLayout
         super(context);
         mView = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.layout_recents, null, false);
         display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+        params.gravity = Gravity.CENTER;
 
         parseRecents();
         addRecents();
@@ -87,7 +90,7 @@ public class Recents extends BaseLayout
         for (int i = 0; i < (mApps.size() > 6 ? 6 : mApps.size()); i++) {
             UsageStats stats = (UsageStats) mApps.values().toArray()[i];
 
-            ImageView view = (ImageView) LayoutInflater.from(getContext()).inflate(R.layout.app_icon, null, false);
+            ImageView view = new ImageView(getContext());
             view.setLayoutParams(params);
             try {
                 view.setImageDrawable(getContext().getPackageManager().getApplicationIcon(stats.getPackageName()));

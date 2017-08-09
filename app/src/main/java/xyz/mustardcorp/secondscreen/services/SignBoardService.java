@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.graphics.Color;
@@ -13,6 +14,7 @@ import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -35,15 +37,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import xyz.mustardcorp.secondscreen.R;
+import xyz.mustardcorp.secondscreen.activities.RequestPermissionsActivity;
 import xyz.mustardcorp.secondscreen.custom.CustomViewPager;
 import xyz.mustardcorp.secondscreen.layouts.AppLauncher;
 import xyz.mustardcorp.secondscreen.layouts.BaseLayout;
+import xyz.mustardcorp.secondscreen.layouts.Contacts;
 import xyz.mustardcorp.secondscreen.layouts.Information;
 import xyz.mustardcorp.secondscreen.layouts.Music;
 import xyz.mustardcorp.secondscreen.layouts.Recents;
 import xyz.mustardcorp.secondscreen.layouts.Toggles;
 import xyz.mustardcorp.secondscreen.misc.Util;
 import xyz.mustardcorp.secondscreen.misc.Values;
+
+import static xyz.mustardcorp.secondscreen.misc.Values.APPS_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.CONTACTS_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.INFO_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.MUSIC_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.RECENTS_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.TOGGLES_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.defaultLoad;
 
 public class SignBoardService extends Service
 {
@@ -57,12 +69,18 @@ public class SignBoardService extends Service
     private BaseLayout mLauncher;
     private BaseLayout mInfo;
     private BaseLayout mRecents;
+    private BaseLayout mContacts;
+
+    private BroadcastReceiver mReceiver;
 
     private Display display;
 
     private boolean isStock = false; //should be false unless debugging on stock V20 ROM
 
     private ContentObserver observer;
+    private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
+
+    private Handler mHandler;
 
     public SignBoardService()
     {
@@ -80,61 +98,84 @@ public class SignBoardService extends Service
         Toast.makeText(this, "SignBoard Started!", Toast.LENGTH_SHORT).show();
         Log.i(TAG, "SignBoard Service Started!");
 
-        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-
-        display = ((WindowManager)getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-
-        CustomPagerAdapter adapter = new CustomPagerAdapter(this, display.getRotation() == Surface.ROTATION_90, -1);
-
-        screenLayout = (CustomViewPager) LayoutInflater.from(this).inflate(R.layout.layout_main, null, false);
-        screenLayout.setAdapter(adapter);
-        if (display.getRotation() == Surface.ROTATION_90) screenLayout.setCurrentItem(screenLayout.getChildCount() - 1);
-        screenLayout.setBackgroundColor(Settings.Global.getInt(getContentResolver(), "ss_color", Color.BLACK));
-
-        // Setup layout parameter
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                0,
-                0,
-                WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS |
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_OVERSCAN |
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH |
-                        WindowManager.LayoutParams.FLAG_LAYOUT_ATTACHED_IN_DECOR |
-                        WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR |
-                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED,
-                PixelFormat.TRANSLUCENT);
-        // At it to window manager for display, it will be printed over any thing
-        windowManager.addView(screenLayout, params);
-
-        switch (display.getRotation()) {
-            case Surface.ROTATION_0:
-                setNormalOrientation(Surface.ROTATION_0);
-                break;
-            case Surface.ROTATION_90:
-                setHorizontalRightOrientation(Surface.ROTATION_0);
-                break;
-            case Surface.ROTATION_180:
-                setUpsideDownOrientation(Surface.ROTATION_0);
-                break;
-            case Surface.ROTATION_270:
-                setHorizontalLeftOrientation(Surface.ROTATION_0);
-                break;
-        }
-
-        setupOrientationListener();
-        setContentObserver();
-
+        mHandler = new Handler(Looper.myLooper());
+        
         boolean shouldBeSticky = PreferenceManager.getDefaultSharedPreferences(this).getBoolean(Values.SHOULD_FORCE_START, true);
 
-        if (PermissionChecker.checkCallingOrSelfPermission(this, Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE) != PackageManager.PERMISSION_GRANTED) {
-            startActivity(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
-        }
+        mHandler.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if (PermissionChecker.checkCallingOrSelfPermission(SignBoardService.this, Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE) != PackageManager.PERMISSION_GRANTED) {
+                    startActivity(new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS));
+                }
 
-        if (PermissionChecker.checkCallingOrSelfPermission(this, Manifest.permission.PACKAGE_USAGE_STATS) != PackageManager.PERMISSION_GRANTED) {
-            startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
-        }
+                if (PermissionChecker.checkCallingOrSelfPermission(SignBoardService.this, Manifest.permission.PACKAGE_USAGE_STATS) != PackageManager.PERMISSION_GRANTED) {
+                    startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+                }
+
+                if (PermissionChecker.checkCallingOrSelfPermission(SignBoardService.this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                    Intent perm = new Intent(SignBoardService.this, RequestPermissionsActivity.class);
+                    perm.putExtra("permission", Manifest.permission.READ_CONTACTS);
+                    startActivity(perm);
+                }
+
+                if (PermissionChecker.checkCallingOrSelfPermission(SignBoardService.this, Manifest.permission.WRITE_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                    Intent perm = new Intent(SignBoardService.this, RequestPermissionsActivity.class);
+                    perm.putExtra("permission", Manifest.permission.WRITE_CONTACTS);
+                    startActivity(perm);
+                }
+
+                windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+
+                display = ((WindowManager)getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+                CustomPagerAdapter adapter = new CustomPagerAdapter(SignBoardService.this, display.getRotation() == Surface.ROTATION_90, -1);
+
+                screenLayout = (CustomViewPager) LayoutInflater.from(SignBoardService.this).inflate(R.layout.layout_main, null, false);
+                screenLayout.setAdapter(adapter);
+                if (display.getRotation() == Surface.ROTATION_90) screenLayout.setCurrentItem(screenLayout.getChildCount() - 1);
+                screenLayout.setBackgroundColor(Settings.Global.getInt(getContentResolver(), "ss_color", Color.BLACK));
+
+                // Setup layout parameter
+                WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                        0,
+                        0,
+                        WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG,
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS |
+                                WindowManager.LayoutParams.FLAG_LAYOUT_IN_OVERSCAN |
+                                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH |
+                                WindowManager.LayoutParams.FLAG_LAYOUT_ATTACHED_IN_DECOR |
+                                WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR |
+                                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED,
+                        PixelFormat.TRANSLUCENT);
+                // At it to window manager for display, it will be printed over any thing
+                windowManager.addView(screenLayout, params);
+
+                switch (display.getRotation()) {
+                    case Surface.ROTATION_0:
+                        setNormalOrientation(Surface.ROTATION_0);
+                        break;
+                    case Surface.ROTATION_90:
+                        setHorizontalRightOrientation(Surface.ROTATION_0);
+                        break;
+                    case Surface.ROTATION_180:
+                        setUpsideDownOrientation(Surface.ROTATION_0);
+                        break;
+                    case Surface.ROTATION_270:
+                        setHorizontalLeftOrientation(Surface.ROTATION_0);
+                        break;
+                }
+
+                setupOrientationListener();
+                setContentObserver();
+                registerReceiver();
+                setSharedPrefsListener();
+            }
+        });
 
         return shouldBeSticky ? Service.START_STICKY : Service.START_NOT_STICKY;
     }
@@ -143,18 +184,76 @@ public class SignBoardService extends Service
     public void onDestroy()
     {
         super.onDestroy();
-        sendBroadcast(new Intent(Values.KILL_BC_ACTION));
+        mHandler.post(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                sendBroadcast(new Intent(Values.KILL_BC_ACTION));
 
-        // Make sure to remove it when you are done, else it will stick there until you reboot
-        // Do keep track of same reference of view you added, don't mess with that
-        windowManager.removeView(screenLayout);
-        if (mToggles != null) mToggles.onDestroy();
-        if (mMusic != null) mMusic.onDestroy();
-        if (mLauncher != null) mLauncher.onDestroy();
-        if (mInfo != null) mInfo.onDestroy();
-        if (mRecents != null) mRecents.onDestroy();
+                try {
+                    windowManager.removeView(screenLayout);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (mToggles != null) mToggles.onDestroy();
+                if (mMusic != null) mMusic.onDestroy();
+                if (mLauncher != null) mLauncher.onDestroy();
+                if (mInfo != null) mInfo.onDestroy();
+                if (mRecents != null) mRecents.onDestroy();
+                if (mContacts != null) mContacts.onDestroy();
 
-        getContentResolver().unregisterContentObserver(observer);
+                getContentResolver().unregisterContentObserver(observer);
+                try {
+                    unregisterReceiver(mReceiver);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                PreferenceManager.getDefaultSharedPreferences(SignBoardService.this).unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+            }
+        });
+    }
+
+    private void registerReceiver() {
+        mReceiver = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                String action = intent.getAction();
+                if (action != null) {
+                    if (action.equals(Intent.ACTION_SCREEN_OFF)) {
+                        windowManager.removeView(screenLayout);
+                    }
+
+                    if (action.equals(Intent.ACTION_SCREEN_ON)) {
+                        windowManager.addView(screenLayout, screenLayout.getLayoutParams());
+                    }
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter() {{
+            addAction(Intent.ACTION_SCREEN_ON);
+            addAction(Intent.ACTION_SCREEN_OFF);
+        }};
+
+        registerReceiver(mReceiver, filter);
+    }
+
+    private void setSharedPrefsListener() {
+        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener()
+        {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s)
+            {
+                if (s.equals("should_force_start")) {
+                    onDestroy();
+                }
+            }
+        };
+
+        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
     }
 
     private void setupOrientationListener() {
@@ -309,13 +408,7 @@ public class SignBoardService extends Service
         private HashMap<String, Object> mAvailablePages = new HashMap<>();
 
         private ArrayList<View> currentViews = new ArrayList<>();
-        private ArrayList<String> defaultLoad = new ArrayList<String>() {{
-            add("recents");
-            add("info");
-            add("toggles");
-            add("music");
-            add("launcher");
-        }};
+
 
         OrientationViewPager.LayoutParams layoutParams = new OrientationViewPager.LayoutParams();
         private final ArrayList<String> load;
@@ -327,25 +420,29 @@ public class SignBoardService extends Service
 
             load = Util.parseSavedViews(mContext, defaultLoad);
 
-            if (load.contains("toggles")) {
+            if (load.contains(TOGGLES_KEY)) {
                 mToggles = new Toggles(mContext);
-                mAvailablePages.put("toggles", mToggles);
+                mAvailablePages.put(TOGGLES_KEY, mToggles);
             }
-            if (load.contains("music")) {
+            if (load.contains(MUSIC_KEY)) {
                 mMusic = new Music(mContext);
-                mAvailablePages.put("music", mMusic);
+                mAvailablePages.put(MUSIC_KEY, mMusic);
             }
-            if (load.contains("launcher")) {
+            if (load.contains(APPS_KEY)) {
                 mLauncher = new AppLauncher(mContext);
-                mAvailablePages.put("launcher", mLauncher);
+                mAvailablePages.put(APPS_KEY, mLauncher);
             }
-            if (load.contains("info")) {
+            if (load.contains(INFO_KEY)) {
                 mInfo = new Information(mContext);
-                mAvailablePages.put("info", mInfo);
+                mAvailablePages.put(INFO_KEY, mInfo);
             }
-            if (load.contains("recents")) {
+            if (load.contains(RECENTS_KEY)) {
                 mRecents = new Recents(context);
-                mAvailablePages.put("recents", mRecents);
+                mAvailablePages.put(RECENTS_KEY, mRecents);
+            }
+            if (load.contains(CONTACTS_KEY)) {
+                mContacts = new Contacts(context);
+                mAvailablePages.put(CONTACTS_KEY, mContacts);
             }
 
             if (shouldReverse) {

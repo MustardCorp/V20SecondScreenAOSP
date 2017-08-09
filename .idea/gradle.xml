@@ -9,6 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/Orientation-ViewPager/library" />
+            <option value="$PROJECT_DIR$/android-advancedrecyclerview/library" />
             <option value="$PROJECT_DIR$/app" />
           </set>
         </option>

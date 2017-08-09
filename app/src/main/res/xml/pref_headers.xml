@@ -10,4 +10,8 @@
         android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$ColorPreferenceFragment"
         android:title="@string/color" />
 
+    <header
+        android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$OrderPreferenceFragment"
+        android:title="Order" />
+
 </preference-headers>

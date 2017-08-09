@@ -94,9 +94,27 @@ public class Toggles extends BaseLayout
     }
 
     public void onDestroy() {
-        if (mWiFiBC != null) mContext.unregisterReceiver(mWiFiBC);
-        if (mSoundBC != null) mContext.unregisterReceiver(mSoundBC);
-        if (mBluetoothBC != null) mContext.unregisterReceiver(mBluetoothBC);
+        if (mWiFiBC != null) {
+            try {
+                mContext.unregisterReceiver(mWiFiBC);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (mSoundBC != null) {
+            try {
+                mContext.unregisterReceiver(mSoundBC);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (mBluetoothBC != null){
+            try {
+                mContext.unregisterReceiver(mBluetoothBC);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         mContext.getContentResolver().unregisterContentObserver(mObserver);
     }
 

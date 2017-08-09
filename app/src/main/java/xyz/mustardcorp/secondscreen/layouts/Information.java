@@ -106,8 +106,8 @@ public class Information extends BaseLayout
         batteryValues();
         wifiLevels();
 
-        TextClock textClock = mView.findViewById(R.id.current_time);
-        textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
+//        TextClock textClock = mView.findViewById(R.id.current_time);
+//        textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
 
         setContentObserver();
 
@@ -137,8 +137,16 @@ public class Information extends BaseLayout
     @Override
     public void onDestroy()
     {
-        getContext().unregisterReceiver(actionChange);
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(localReceiver);
+        try {
+            getContext().unregisterReceiver(actionChange);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(localReceiver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         getContext().getContentResolver().unregisterContentObserver(mObserver);
     }
 
@@ -180,10 +188,10 @@ public class Information extends BaseLayout
                     batteryView.setCompoundDrawableTintList(ColorStateList.valueOf(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE)));
                 }
 
-                if (uri.equals(clock)) {
-                    TextClock textClock = mView.findViewById(R.id.current_time);
-                    textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
-                }
+//                if (uri.equals(clock)) {
+//                    TextClock textClock = mView.findViewById(R.id.current_time);
+//                    textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
+//                }
 
                 super.onChange(selfChange, uri);
             }
@@ -495,7 +503,7 @@ public class Information extends BaseLayout
             @Override
             public void run()
             {
-                final TextClock textClock = mView.findViewById(R.id.current_time);
+//                final TextClock textClock = mView.findViewById(R.id.current_time);
                 Calendar cal = Calendar.getInstance();
                 while (wakeLock.isHeld()) {
                     Date currentLocalTime = cal.getTime();
@@ -507,13 +515,13 @@ public class Information extends BaseLayout
                         @Override
                         public void run()
                         {
-                            textClock.setText(localTime);
-                            PowerManager.WakeLock wakeLock = manager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "temp_wake");
-                            if (!textClock.getText().equals(localTime)) {
-                                wakeLock.acquire();
-                                wakeLock.release();
-
-                            }
+//                            textClock.setText(localTime);
+//                            PowerManager.WakeLock wakeLock = manager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "temp_wake");
+//                            if (!textClock.getText().equals(localTime)) {
+//                                wakeLock.acquire();
+//                                wakeLock.release();
+//
+//                            }
                         }
                     });
 

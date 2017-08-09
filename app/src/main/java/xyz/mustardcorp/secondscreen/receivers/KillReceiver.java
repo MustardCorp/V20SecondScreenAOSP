@@ -3,6 +3,7 @@ package xyz.mustardcorp.secondscreen.receivers;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -19,7 +20,7 @@ public class KillReceiver extends BroadcastReceiver
 
         if (action != null && action.equals(Values.KILL_BC_ACTION)) {
             Log.e("Received", action);
-            context.startService(new Intent(context, SignBoardService.class));
+            if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("should_force_start", true)) context.startService(new Intent(context, SignBoardService.class));
         }
     }
 }

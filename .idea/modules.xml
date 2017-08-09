@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/android-advancedrecyclerview/library/RecyclerView.iml" filepath="$PROJECT_DIR$/android-advancedrecyclerview/library/RecyclerView.iml" />
       <module fileurl="file://$PROJECT_DIR$/SecondScreen.iml" filepath="$PROJECT_DIR$/SecondScreen.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/Orientation-ViewPager/library/library.iml" filepath="$PROJECT_DIR$/Orientation-ViewPager/library/library.iml" />

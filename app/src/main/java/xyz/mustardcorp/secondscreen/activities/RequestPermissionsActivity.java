@@ -17,7 +17,7 @@ public class RequestPermissionsActivity extends AppCompatActivity
 
         if (extras != null && extras.getString("permission") != null) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    new String[]{extras.getString("permission")},
                     10001);
         }
         finish();

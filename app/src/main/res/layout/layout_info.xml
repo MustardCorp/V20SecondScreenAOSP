@@ -53,13 +53,13 @@
         android:text="100%"
         android:textColor="#fff" />
 
-    <TextClock
-        android:id="@+id/current_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right|center_vertical"
-        android:layout_margin="2dp"
-        android:gravity="right"
-        android:textColor="#fff"
-        android:textSize="18sp" />
+    <!--<TextClock-->
+        <!--android:id="@+id/current_time"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="right|center_vertical"-->
+        <!--android:layout_margin="2dp"-->
+        <!--android:gravity="right"-->
+        <!--android:textColor="#fff"-->
+        <!--android:textSize="18sp" />-->
 </LinearLayout>

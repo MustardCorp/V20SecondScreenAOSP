@@ -5,12 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.provider.Settings;
@@ -18,11 +14,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
-import android.preference.RingtonePreference;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,7 +33,9 @@ import java.util.List;
 
 import xyz.mustardcorp.secondscreen.custom.AbstractDataProvider;
 import xyz.mustardcorp.secondscreen.custom.CustomDragAndDropAdapter;
+import xyz.mustardcorp.secondscreen.custom.TogglesDragAndDropAdapter;
 import xyz.mustardcorp.secondscreen.misc.DataItems;
+import xyz.mustardcorp.secondscreen.misc.ToggleItems;
 import xyz.mustardcorp.secondscreen.misc.Values;
 import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
@@ -116,7 +111,8 @@ public class OptionsActivity extends AppCompatPreferenceActivity
         return PreferenceFragment.class.getName().equals(fragmentName)
                 || OtherPreferenceFragment.class.getName().equals(fragmentName)
                 || ColorPreferenceFragment.class.getName().equals(fragmentName)
-                || OrderPreferenceFragment.class.getName().equals(fragmentName);
+                || PageOrderPreferenceFragment.class.getName().equals(fragmentName)
+                || ToggleOrderPreferenceFragment.class.getName().equals(fragmentName);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -202,7 +198,7 @@ public class OptionsActivity extends AppCompatPreferenceActivity
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class OrderPreferenceFragment extends PreferenceFragment
+    public static class PageOrderPreferenceFragment extends PreferenceFragment
     {
         private RecyclerView mRecyclerView;
         private RecyclerView.LayoutManager mLayoutManager;
@@ -221,7 +217,7 @@ public class OptionsActivity extends AppCompatPreferenceActivity
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
         {
-            return inflater.inflate(R.layout.layout_page_order, container, false);
+            return inflater.inflate(R.layout.layout_order, container, false);
         }
 
         @Override
@@ -295,6 +291,175 @@ public class OptionsActivity extends AppCompatPreferenceActivity
 
             DataItems dataItems = new DataItems(getContext());
             final ArrayList<AbstractDataProvider.Data> items = dataItems.getAll();
+
+            AbstractDataProvider provider = new AbstractDataProvider()
+            {
+                private Data mRemovedItem = null;
+                private int mRemovedPosition = -1;
+
+                @Override
+                public int getCount()
+                {
+                    return items.size();
+                }
+
+                @Override
+                public Data getItem(int index)
+                {
+                    return items.get(index);
+                }
+
+                @Override
+                public void removeItem(int position)
+                {
+                    mRemovedItem = items.remove(position);
+                }
+
+                @Override
+                public void moveItem(int fromPosition, int toPosition)
+                {
+                    Data item = items.remove(fromPosition);
+                    items.add(toPosition, item);
+                }
+
+                @Override
+                public void swapItem(int fromPosition, int toPosition)
+                {
+                    Data from = items.get(fromPosition);
+                    Data to = items.get(toPosition);
+
+                    items.set(fromPosition, to);
+                    items.set(toPosition, from);
+                }
+
+                @Override
+                public int undoLastRemoval()
+                {
+                    if (mRemovedItem != null && mRemovedPosition != -1) {
+                        items.add(mRemovedPosition, mRemovedItem);
+                        return mRemovedPosition;
+                    }
+
+                    return -1;
+                }
+
+                @Override
+                public int indexOf(Data item)
+                {
+                    return items.indexOf(item);
+                }
+            };
+
+            return provider;
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item)
+        {
+            int id = item.getItemId();
+            if (id == android.R.id.home)
+            {
+                startActivity(new Intent(getActivity(), OptionsActivity.class));
+                return true;
+            }
+            return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    public static class ToggleOrderPreferenceFragment extends PreferenceFragment
+    {
+        private RecyclerView mRecyclerView;
+        private RecyclerView.LayoutManager mLayoutManager;
+        private RecyclerViewDragDropManager mRecyclerViewDragDropManager;
+        private TogglesDragAndDropAdapter mAdapter;
+        private RecyclerView.Adapter mWrappedAdapter;
+
+        @Override
+        public void onCreate(Bundle savedInstanceState)
+        {
+            super.onCreate(savedInstanceState);
+            setHasOptionsMenu(true);
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
+        {
+            return inflater.inflate(R.layout.layout_order, container, false);
+        }
+
+        @Override
+        public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
+        {
+            super.onViewCreated(view, savedInstanceState);
+
+            mRecyclerView = (RecyclerView) getView();
+            mLayoutManager = new LinearLayoutManager(getContext());
+
+            // drag & drop manager
+            mRecyclerViewDragDropManager = new RecyclerViewDragDropManager();
+//        mRecyclerViewDragDropManager.setDraggingItemShadowDrawable(
+//                (NinePatchDrawable) ContextCompat.getDrawable(getContext(), R.drawable.material_shadow_z3));
+            // Start dragging after long press
+            mRecyclerViewDragDropManager.setInitiateOnLongPress(true);
+            mRecyclerViewDragDropManager.setInitiateOnMove(false);
+
+            //adapter
+            mAdapter = new TogglesDragAndDropAdapter(getDataProvider(), getContext());
+
+            mWrappedAdapter = mRecyclerViewDragDropManager.createWrappedAdapter(mAdapter);      // wrap for dragging
+
+            final GeneralItemAnimator animator = new DraggableItemAnimator();
+
+            mRecyclerView.setLayoutManager(mLayoutManager);
+            mRecyclerView.setAdapter(mWrappedAdapter);  // requires *wrapped* adapter
+            mRecyclerView.setItemAnimator(animator);
+
+            mRecyclerView.addItemDecoration(new SimpleListDividerDecorator(ContextCompat.getDrawable(getContext(), R.drawable.horizontal_divider), true));
+
+            mRecyclerViewDragDropManager.attachRecyclerView(mRecyclerView);
+        }
+
+        @Override
+        public void onPause()
+        {
+            mRecyclerViewDragDropManager.cancelDrag();
+            super.onPause();
+        }
+
+        @Override
+        public void onDestroyView()
+        {
+            if (mRecyclerViewDragDropManager != null)
+            {
+                mRecyclerViewDragDropManager.release();
+                mRecyclerViewDragDropManager = null;
+            }
+
+            if (mRecyclerView != null)
+            {
+                mRecyclerView.setItemAnimator(null);
+                mRecyclerView.setAdapter(null);
+                mRecyclerView = null;
+            }
+
+            if (mWrappedAdapter != null)
+            {
+                WrapperAdapterUtils.releaseAll(mWrappedAdapter);
+                mWrappedAdapter = null;
+            }
+            mAdapter = null;
+            mLayoutManager = null;
+
+            super.onDestroyView();
+        }
+
+        public AbstractDataProvider getDataProvider()
+        {
+
+            ToggleItems toggleItems = new ToggleItems(getContext());
+            final ArrayList<AbstractDataProvider.Data> items = toggleItems.getAll();
 
             AbstractDataProvider provider = new AbstractDataProvider()
             {

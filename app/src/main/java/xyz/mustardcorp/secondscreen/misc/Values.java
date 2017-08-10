@@ -23,6 +23,24 @@ public class Values
     public static int RECENTS_ID = 5;
     public static int CONTACTS_ID = 6;
 
+    public static int SOUND_ID = INFO_ID;
+    public static int WIFI_ID = TOGGLES_ID;
+    public static int FLASHLIGHT_ID = MUSIC_ID;
+    public static int BT_ID = APPS_ID;
+    public static int AIRPLANE_ID = RECENTS_ID;
+
+    public static final String SOUND_TOGGLE = "sound";
+    public static final String WIFI_TOGGLE = "wifi";
+    public static final String FLASHLIGHT_TOGGLE = "flashlight";
+    public static final String BLUETOOTH_TOGGLE = "bluetooth";
+    public static final String AIRPLANE_TOGGLE = "airplane";
+
+    public static final String SOUND_KEY = "sound_color";
+    public static final String WIFI_KEY = "wifi_color";
+    public static final String FLASHLIGHT_KEY = "flash_color";
+    public static final String BT_KEY = "bt_color";
+    public static final String AIRPLANE_KEY = "airplane_color";
+
     /**
      * Default order and state of pages
      */
@@ -33,5 +51,13 @@ public class Values
 //        add(MUSIC_KEY);
 //        add(RECENTS_KEY);
         add(CONTACTS_KEY);
+    }};
+
+    public static final ArrayList<String> defaultToggleOrder = new ArrayList<String>() {{
+        add(SOUND_TOGGLE);
+        add(WIFI_TOGGLE);
+        add(FLASHLIGHT_TOGGLE);
+        add(BLUETOOTH_TOGGLE);
+        add(AIRPLANE_TOGGLE);
     }};
 }

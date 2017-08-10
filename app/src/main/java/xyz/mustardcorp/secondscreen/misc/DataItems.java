@@ -4,6 +4,7 @@ import android.content.Context;
 
 import java.util.ArrayList;
 
+import xyz.mustardcorp.secondscreen.OptionsActivity;
 import xyz.mustardcorp.secondscreen.custom.AbstractDataProvider;
 
 import static xyz.mustardcorp.secondscreen.misc.Values.APPS_ID;
@@ -21,7 +22,7 @@ import static xyz.mustardcorp.secondscreen.misc.Values.TOGGLES_KEY;
 
 /**
  * Contains list of current pages and their values
- * (used for {@link xyz.mustardcorp.secondscreen.OptionsActivity.OrderPreferenceFragment}
+ * (used for {@link OptionsActivity.PageOrderPreferenceFragment}
  */
 
 public class DataItems
@@ -42,8 +43,8 @@ public class DataItems
             add(info);
             add(toggles);
             add(apps);
-//            add(music);
-//            add(recents);
+//            add(flash);
+//            add(airplane);
             add(contacts);
         }};
         if (saved.equals(Values.defaultLoad)) {

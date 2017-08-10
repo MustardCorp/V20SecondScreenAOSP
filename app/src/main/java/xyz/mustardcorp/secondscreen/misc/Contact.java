@@ -3,7 +3,7 @@ package xyz.mustardcorp.secondscreen.misc;
 import android.graphics.drawable.Drawable;
 
 /**
- * Simple class to store contact info
+ * Simple class to store contact sound
  */
 public class Contact
 {

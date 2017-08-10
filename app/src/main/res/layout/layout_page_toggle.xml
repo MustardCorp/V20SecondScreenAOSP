@@ -22,7 +22,7 @@
             android:background="?selectableItemBackground"/>
 
         <Switch
-            android:id="@+id/screen_toggle"
+            android:id="@+id/toggle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"

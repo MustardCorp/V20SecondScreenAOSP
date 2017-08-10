@@ -11,7 +11,11 @@
         android:title="@string/color" />
 
     <header
-        android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$OrderPreferenceFragment"
-        android:title="Order" />
+        android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$PageOrderPreferenceFragment"
+        android:title="Page Order" />
+
+    <header
+        android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$ToggleOrderPreferenceFragment"
+        android:title="Toggle Order" />
 
 </preference-headers>

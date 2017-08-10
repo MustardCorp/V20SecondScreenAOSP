@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import xyz.mustardcorp.secondscreen.R;
 
 /**
- * Simple music controller
+ * Simple flash controller
  * (BROKEN)
  */
 
@@ -105,7 +105,7 @@ public class Music extends BaseLayout
         };
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.android.music.playstatechanged");
+        filter.addAction("com.android.flash.playstatechanged");
         filter.addAction("fm.last.android.metachanged");
         filter.addAction("fm.last.android.playbackpaused");
         filter.addAction("fm.last.android.playbackcomplete");

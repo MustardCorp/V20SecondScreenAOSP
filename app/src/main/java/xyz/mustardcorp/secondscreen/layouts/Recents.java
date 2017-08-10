@@ -25,7 +25,7 @@ import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.misc.Util;
 
 /**
- * Short list of recent apps
+ * Short list of recent bluetooth
  * (BROKEN)
  */
 

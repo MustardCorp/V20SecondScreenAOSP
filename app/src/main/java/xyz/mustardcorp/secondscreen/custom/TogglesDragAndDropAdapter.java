@@ -37,9 +37,9 @@ import java.util.ArrayList;
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.misc.Util;
 
-public class CustomDragAndDropAdapter
-        extends RecyclerView.Adapter<CustomDragAndDropAdapter.MyViewHolder>
-        implements DraggableItemAdapter<CustomDragAndDropAdapter.MyViewHolder> {
+public class TogglesDragAndDropAdapter
+        extends RecyclerView.Adapter<TogglesDragAndDropAdapter.MyViewHolder>
+        implements DraggableItemAdapter<TogglesDragAndDropAdapter.MyViewHolder> {
     private static final String TAG = "MyDraggableItemAdapter";
     private MyViewHolder viewHolder;
 
@@ -63,7 +63,7 @@ public class CustomDragAndDropAdapter
         }
     }
 
-    public CustomDragAndDropAdapter(AbstractDataProvider dataProvider, Context context) {
+    public TogglesDragAndDropAdapter(AbstractDataProvider dataProvider, Context context) {
         mProvider = dataProvider;
         mContext = context;
 
@@ -92,20 +92,19 @@ public class CustomDragAndDropAdapter
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         final AbstractDataProvider.Data item = mProvider.getItem(position);
+        final String key = item.getKey();
 
         viewHolder = holder;
 
         // set text
         holder.mSwitch.setText(item.getText());
-        holder.mSwitch.setChecked(item.isEnabled());
+        holder.mSwitch.setChecked(Util.isToggleShown(mContext, key));
         holder.mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
         {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b)
             {
-                if (b) Util.addViewIfNeeded(mContext, item.getKey(), 0);
-                else Util.removeView(mContext, item.getKey());
-                setItems();
+                Util.setToggleShown(mContext, key, b);
             }
         });
     }
@@ -135,12 +134,10 @@ public class CustomDragAndDropAdapter
 
         for (int i = 0; i < mProvider.getCount(); i++) {
             AbstractDataProvider.Data item = mProvider.getItem(i);
-            if (item.isEnabled()) {
-                keysToAdd.add(item.getKey());
-            }
+            keysToAdd.add(item.getKey());
         }
 
-        Util.saveViews(mContext, keysToAdd);
+        Util.saveNewToggleOrder(mContext, keysToAdd);
     }
 
     @Override

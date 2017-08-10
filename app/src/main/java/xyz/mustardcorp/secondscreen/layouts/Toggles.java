@@ -13,9 +13,7 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
-import android.os.Looper;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -30,12 +28,22 @@ import android.widget.LinearLayout;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-import javax.microedition.khronos.opengles.GL;
-
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.misc.FlashlightController;
+import xyz.mustardcorp.secondscreen.misc.Util;
 
 import static android.content.Context.WIFI_SERVICE;
+import static xyz.mustardcorp.secondscreen.misc.Values.AIRPLANE_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.AIRPLANE_TOGGLE;
+import static xyz.mustardcorp.secondscreen.misc.Values.BLUETOOTH_TOGGLE;
+import static xyz.mustardcorp.secondscreen.misc.Values.BT_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.FLASHLIGHT_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.FLASHLIGHT_TOGGLE;
+import static xyz.mustardcorp.secondscreen.misc.Values.SOUND_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.SOUND_TOGGLE;
+import static xyz.mustardcorp.secondscreen.misc.Values.WIFI_KEY;
+import static xyz.mustardcorp.secondscreen.misc.Values.WIFI_TOGGLE;
+import static xyz.mustardcorp.secondscreen.misc.Values.defaultToggleOrder;
 
 /**
  * Similar to Android's QuickSettings, but colorable
@@ -43,18 +51,6 @@ import static android.content.Context.WIFI_SERVICE;
 
 public class Toggles extends BaseLayout
 {
-    public static final String SOUND_TOGGLE = "sound";
-    public static final String WIFI_TOGGLE = "wifi";
-    public static final String FLASHLIGHT_TOGGLE = "flashlight";
-    public static final String BLUETOOTH_TOGGLE = "bluetooth";
-    public static final String AIRPLANE_TOGGLE = "airplane";
-
-    public static final String SOUND_KEY = "sound_color";
-    public static final String WIFI_KEY = "wifi_color";
-    public static final String FLASHLIGHT_KEY = "flash_color";
-    public static final String BT_KEY = "bt_color";
-    public static final String AIRPLANE_KEY = "airplane_color";
-
     public static final int SIZE = 150;
 
     private LinearLayout.LayoutParams mParams = new LinearLayout.LayoutParams(SIZE, SIZE, 1);
@@ -64,14 +60,6 @@ public class Toggles extends BaseLayout
     private BroadcastReceiver mWiFiBC;
     private BroadcastReceiver mSoundBC;
     private BroadcastReceiver mBluetoothBC;
-
-    private static final ArrayList<String> defaultOrder = new ArrayList<String>() {{
-        add(SOUND_TOGGLE);
-        add(WIFI_TOGGLE);
-        add(FLASHLIGHT_TOGGLE);
-        add(BLUETOOTH_TOGGLE);
-        add(AIRPLANE_TOGGLE);
-    }};
 
     private ImageView bluetooth;
     private ImageView flash;
@@ -204,7 +192,7 @@ public class Toggles extends BaseLayout
      * Make sure toggles are in the desired order
      */
     private void addInSetOrder() {
-        ArrayList<String> set = defaultOrder;
+        ArrayList<String> set = Util.parseSavedToggleOrder(getContext(), defaultToggleOrder);
 
         mView.removeAllViews();
 
@@ -239,10 +227,13 @@ public class Toggles extends BaseLayout
                     setAirplaneModeState();
             }
         }
+
+        mView.invalidate();
+        mView.requestLayout();
     }
 
     /**
-     * Make sure WiFi toggles reflects the current state
+     * Make sure WiFi wifi reflects the current state
      */
     private void setWiFiState() {
         final WifiManager wm = (WifiManager) mContext.getSystemService(WIFI_SERVICE);
@@ -251,42 +242,46 @@ public class Toggles extends BaseLayout
         mView.addView(wifi, 0);
         wifi.setLayoutParams(mParams);
 
-        setWiFiColor();
-        setWiFiToggleState(wifi);
-
-        mWiFiBC = new BroadcastReceiver()
+        if (setWiFiShown())
         {
-            @Override
-            public void onReceive(Context context, Intent intent)
+
+            setWiFiColor();
+            setWiFiToggleState(wifi);
+
+            mWiFiBC = new BroadcastReceiver()
             {
-                setWiFiToggleState(wifi);
-            }
-        };
+                @Override
+                public void onReceive(Context context, Intent intent)
+                {
+                    setWiFiToggleState(wifi);
+                }
+            };
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("android.net.wifi.WIFI_STATE_CHANGED");
-        intentFilter.addAction("android.net.wifi.STATE_CHANGE");
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction("android.net.wifi.WIFI_STATE_CHANGED");
+            intentFilter.addAction("android.net.wifi.STATE_CHANGE");
 
-        mContext.registerReceiver(mWiFiBC, intentFilter);
+            mContext.registerReceiver(mWiFiBC, intentFilter);
 
-        wifi.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
+            wifi.setOnClickListener(new View.OnClickListener()
             {
-                wm.setWifiEnabled(!wm.isWifiEnabled());
-            }
-        });
+                @Override
+                public void onClick(View view)
+                {
+                    wm.setWifiEnabled(!wm.isWifiEnabled());
+                }
+            });
 
-        wifi.setOnLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View view)
+            wifi.setOnLongClickListener(new View.OnLongClickListener()
             {
-                mContext.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
-                return true;
-            }
-        });
+                @Override
+                public boolean onLongClick(View view)
+                {
+                    mContext.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                    return true;
+                }
+            });
+        }
     }
 
     /**
@@ -311,8 +306,14 @@ public class Toggles extends BaseLayout
         }
     }
 
+    private boolean setWiFiShown() {
+        boolean enabled = Util.isToggleShown(getContext(), WIFI_TOGGLE);
+        wifi.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        return enabled;
+    }
+
     /**
-     * Make sure sound toggles reflects correct state
+     * Make sure sound wifi reflects correct state
      */
     private void setSoundState() {
         final AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
@@ -321,51 +322,56 @@ public class Toggles extends BaseLayout
         mView.addView(sound, 0);
         sound.setLayoutParams(mParams);
 
-        setSoundColor();
-        setSoundToggleState(sound);
-
-        mSoundBC = new BroadcastReceiver()
+        if (setSoundShown())
         {
-            @Override
-            public void onReceive(Context context, Intent intent)
+
+            setSoundColor();
+            setSoundToggleState(sound);
+
+            mSoundBC = new BroadcastReceiver()
             {
-                setSoundToggleState(sound);
-            }
-        };
-
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(AudioManager.RINGER_MODE_CHANGED_ACTION);
-
-        mContext.registerReceiver(mSoundBC, intentFilter);
-
-        sound.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                switch (am.getRingerMode()) {
-                    case AudioManager.RINGER_MODE_SILENT:
-                        am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-                        break;
-                    case AudioManager.RINGER_MODE_VIBRATE:
-                        am.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-                        break;
-                    case AudioManager.RINGER_MODE_NORMAL:
-                        am.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
-                        break;
+                @Override
+                public void onReceive(Context context, Intent intent)
+                {
+                    setSoundToggleState(sound);
                 }
-            }
-        });
+            };
 
-        sound.setOnLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View view)
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(AudioManager.RINGER_MODE_CHANGED_ACTION);
+
+            mContext.registerReceiver(mSoundBC, intentFilter);
+
+            sound.setOnClickListener(new View.OnClickListener()
             {
-                mContext.startActivity(new Intent(Settings.ACTION_SOUND_SETTINGS));
-                return true;
-            }
-        });
+                @Override
+                public void onClick(View view)
+                {
+                    switch (am.getRingerMode())
+                    {
+                        case AudioManager.RINGER_MODE_SILENT:
+                            am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+                            break;
+                        case AudioManager.RINGER_MODE_VIBRATE:
+                            am.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+                            break;
+                        case AudioManager.RINGER_MODE_NORMAL:
+                            am.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+                            break;
+                    }
+                }
+            });
+
+            sound.setOnLongClickListener(new View.OnLongClickListener()
+            {
+                @Override
+                public boolean onLongClick(View view)
+                {
+                    mContext.startActivity(new Intent(Settings.ACTION_SOUND_SETTINGS));
+                    return true;
+                }
+            });
+        }
     }
 
     /**
@@ -396,6 +402,12 @@ public class Toggles extends BaseLayout
         }
     }
 
+    private boolean setSoundShown() {
+        boolean enabled = Util.isToggleShown(getContext(), SOUND_TOGGLE);
+        sound.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        return enabled;
+    }
+
     /**
      * Set proper flashlight state
      * (Flashlight implementation is buggy!)
@@ -405,53 +417,58 @@ public class Toggles extends BaseLayout
         mView.addView(flash, 0);
         flash.setLayoutParams(mParams);
 
-        final FlashlightController controller = new FlashlightController(mContext);
-        controller.addListener(new FlashlightController.FlashlightListener()
+        if (setFlashlightShown())
         {
-            @Override
-            public void onFlashlightChanged(final boolean enabled)
+            final FlashlightController controller = new FlashlightController(mContext);
+            controller.addListener(new FlashlightController.FlashlightListener()
             {
-                if (mFlashlightEnabled != enabled)
+                @Override
+                public void onFlashlightChanged(final boolean enabled)
                 {
-                    new Handler(mContext.getMainLooper()).post(new Runnable()
+                    if (mFlashlightEnabled != enabled)
                     {
-                        @Override
-                        public void run()
+                        new Handler(mContext.getMainLooper()).post(new Runnable()
                         {
-                            setFlashlightToggleState(flash, enabled);
-                        }
-                    });
+                            @Override
+                            public void run()
+                            {
+                                setFlashlightToggleState(flash, enabled);
+                            }
+                        });
+                    }
                 }
-            }
 
-            @Override
-            public void onFlashlightError()
-            {
+                @Override
+                public void onFlashlightError()
+                {
 
-            }
-
-            @Override
-            public void onFlashlightAvailabilityChanged(boolean available)
-            {
-
-            }
-        });
-
-        setFlashlightColor();
-        setFlashlightToggleState(flash, false);
-
-        flash.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                if (controller.isEnabled()) {
-                    controller.setFlashlight(false);
-                } else {
-                    controller.setFlashlight(true);
                 }
-            }
-        });
+
+                @Override
+                public void onFlashlightAvailabilityChanged(boolean available)
+                {
+
+                }
+            });
+
+            setFlashlightColor();
+            setFlashlightToggleState(flash, false);
+
+            flash.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View view)
+                {
+                    if (controller.isEnabled())
+                    {
+                        controller.setFlashlight(false);
+                    } else
+                    {
+                        controller.setFlashlight(true);
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -476,6 +493,12 @@ public class Toggles extends BaseLayout
         }
     }
 
+    private boolean setFlashlightShown() {
+        boolean enabled = Util.isToggleShown(getContext(), FLASHLIGHT_TOGGLE);
+        flash.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        return enabled;
+    }
+
     /**
      * Set proper Bluetooth state
      */
@@ -484,44 +507,47 @@ public class Toggles extends BaseLayout
         mView.addView(bluetooth, 0);
         bluetooth.setLayoutParams(mParams);
 
-        final BluetoothAdapter ba = BluetoothAdapter.getDefaultAdapter();
-
-        mBluetoothBC = new BroadcastReceiver()
+        if (setBluetoothShown())
         {
-            @Override
-            public void onReceive(Context context, Intent intent)
+            final BluetoothAdapter ba = BluetoothAdapter.getDefaultAdapter();
+
+            mBluetoothBC = new BroadcastReceiver()
             {
-                setBluetoothToggleState(bluetooth);
-            }
-        };
+                @Override
+                public void onReceive(Context context, Intent intent)
+                {
+                    setBluetoothToggleState(bluetooth);
+                }
+            };
 
-        setBluetoothColor();
-        setBluetoothToggleState(bluetooth);
+            setBluetoothColor();
+            setBluetoothToggleState(bluetooth);
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
 
-        mContext.registerReceiver(mBluetoothBC, filter);
+            mContext.registerReceiver(mBluetoothBC, filter);
 
-        bluetooth.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
+            bluetooth.setOnClickListener(new View.OnClickListener()
             {
-                if (ba.isEnabled()) ba.disable();
-                else ba.enable();
-            }
-        });
+                @Override
+                public void onClick(View view)
+                {
+                    if (ba.isEnabled()) ba.disable();
+                    else ba.enable();
+                }
+            });
 
-        bluetooth.setOnLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View view)
+            bluetooth.setOnLongClickListener(new View.OnLongClickListener()
             {
-                mContext.startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
-                return true;
-            }
-        });
+                @Override
+                public boolean onLongClick(View view)
+                {
+                    mContext.startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
+                    return true;
+                }
+            });
+        }
     }
 
     /**
@@ -546,65 +572,80 @@ public class Toggles extends BaseLayout
         }
     }
 
+    private boolean setBluetoothShown() {
+        boolean enabled = Util.isToggleShown(getContext(), BLUETOOTH_TOGGLE);
+        bluetooth.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        return enabled;
+    }
+
     private void setAirplaneModeState() {
         airplane = new ImageView(mContext);
         mView.addView(airplane, 0);
         airplane.setLayoutParams(mParams);
 
-        mAirplaneBC = new BroadcastReceiver()
+        if (setAirplaneShown())
         {
-            @Override
-            public void onReceive(Context context, Intent intent)
+
+            mAirplaneBC = new BroadcastReceiver()
             {
-                setAirplaneToggleState(airplane);
+                @Override
+                public void onReceive(Context context, Intent intent)
+                {
+                    setAirplaneToggleState(airplane);
+                }
+            };
+
+            setAirplaneModeColor();
+            setAirplaneToggleState(airplane);
+
+            IntentFilter filter = new IntentFilter();
+            filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+
+            mContext.registerReceiver(mAirplaneBC, filter);
+
+            final ConnectivityManager mgr = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+            Method setAirplaneMode = null;
+
+            try
+            {
+                setAirplaneMode = ConnectivityManager.class.getMethod("setAirplaneMode", boolean.class);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
             }
-        };
 
-        setAirplaneModeColor();
-        setAirplaneToggleState(airplane);
+            final Method setAirplaneModeFinal = setAirplaneMode;
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-
-        mContext.registerReceiver(mAirplaneBC, filter);
-
-        final ConnectivityManager mgr =  (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        Method setAirplaneMode = null;
-
-        try {
-            setAirplaneMode = ConnectivityManager.class.getMethod("setAirplaneMode", boolean.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        final Method setAirplaneModeFinal = setAirplaneMode;
-
-        airplane.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
+            airplane.setOnClickListener(new View.OnClickListener()
             {
-                boolean enabled = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
+                @Override
+                public void onClick(View view)
+                {
+                    boolean enabled = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
 
-                if (setAirplaneModeFinal != null) {
-                    try {
-                        setAirplaneModeFinal.invoke(mgr, !enabled);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    if (setAirplaneModeFinal != null)
+                    {
+                        try
+                        {
+                            setAirplaneModeFinal.invoke(mgr, !enabled);
+                        } catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        airplane.setOnLongClickListener(new View.OnLongClickListener()
-        {
-            @Override
-            public boolean onLongClick(View view)
+            airplane.setOnLongClickListener(new View.OnLongClickListener()
             {
-                mContext.startActivity(new Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS));
-                return true;
-            }
-        });
+                @Override
+                public boolean onLongClick(View view)
+                {
+                    mContext.startActivity(new Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS));
+                    return true;
+                }
+            });
+        }
     }
 
     private void setAirplaneModeColor() {
@@ -620,6 +661,12 @@ public class Toggles extends BaseLayout
         } else {
             airplane.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_airplanemode_inactive_black_24dp, null));
         }
+    }
+
+    private boolean setAirplaneShown() {
+        boolean enabled = Util.isToggleShown(getContext(), AIRPLANE_TOGGLE);
+        airplane.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        return enabled;
     }
 
     /**
@@ -640,11 +687,28 @@ public class Toggles extends BaseLayout
                 Uri bt = Settings.Global.getUriFor(BT_KEY);
                 Uri airplane = Settings.Global.getUriFor(AIRPLANE_KEY);
 
+                Uri wifiShown = Settings.Global.getUriFor(WIFI_TOGGLE + "_shown");
+                Uri soundShown = Settings.Global.getUriFor(SOUND_TOGGLE + "_shown");
+                Uri flashShown = Settings.Global.getUriFor(FLASHLIGHT_TOGGLE + "_shown");
+                Uri btShown = Settings.Global.getUriFor(BLUETOOTH_TOGGLE + "_shown");
+                Uri airplaneShown = Settings.Global.getUriFor(AIRPLANE_TOGGLE + "_shown");
+
+                Uri toggleOrder = Settings.Global.getUriFor("toggle_order");
+
                 if (uri.equals(wifi)) setWiFiColor();
                 if (uri.equals(sound)) setSoundColor();
                 if (uri.equals(flash)) setFlashlightColor();
                 if (uri.equals(bt)) setBluetoothColor();
                 if (uri.equals(airplane)) setAirplaneModeColor();
+
+                if (uri.equals(wifiShown)
+                        || uri.equals(soundShown)
+                        || uri.equals(flashShown)
+                        || uri.equals(btShown)
+                        || uri.equals(airplaneShown)
+                        || uri.equals(toggleOrder)) {
+                    addInSetOrder();
+                }
             }
         };
 

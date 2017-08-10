@@ -449,6 +449,7 @@ public class SignBoardService extends Service
             if (shouldReverse) {
                 for (int i = load.size() - 1; i >= 0; i--) {
                     String s = load.get(i);
+                    Log.e("NAME", s);
                     ((BaseLayout) mAvailablePages.get(s)).getView().setLayoutParams(layoutParams);
                     currentViews.add(((BaseLayout) mAvailablePages.get(s)).getView());
                     notifyDataSetChanged();
@@ -456,6 +457,7 @@ public class SignBoardService extends Service
             } else {
                 for (String s : load)
                 {
+                    Log.e("NAME", s);
                     ((BaseLayout) mAvailablePages.get(s)).getView().setLayoutParams(layoutParams);
                     currentViews.add(((BaseLayout) mAvailablePages.get(s)).getView());
                 }

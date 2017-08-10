@@ -30,7 +30,7 @@ import xyz.mustardcorp.secondscreen.layouts.AppLauncher;
 /**
  * Activity shown on long press of app shortcut or normal press on empty launcher
  *
- * Presents a list of available apps for the user to choose, and places the chosen app in the proper Settings.Global preference
+ * Presents a list of available bluetooth for the user to choose, and places the chosen app in the proper Settings.Global preference
  */
 
 public class AddAppShortcutActivity extends AppCompatActivity
@@ -102,7 +102,7 @@ public class AddAppShortcutActivity extends AppCompatActivity
     }
 
     /**
-     * Class for storing package info
+     * Class for storing package sound
      */
     class PInfo {
         public String appname = "";
@@ -225,7 +225,7 @@ public class AddAppShortcutActivity extends AppCompatActivity
     }
 
     /**
-     * Get a list of the currently installed apps, sorted by name
+     * Get a list of the currently installed bluetooth, sorted by name
      * @param getSysPackages whether or not to include system packages
      * @return sorted list of applications by name
      */

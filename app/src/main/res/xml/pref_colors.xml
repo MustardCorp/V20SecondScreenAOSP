@@ -1,68 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/sound_toggle"
-        android:key="sound_color" />
+    <PreferenceCategory
+        android:title="@string/general">
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/wifi_toggle"
-        android:key="wifi_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/ss_background"
+            android:key="ss_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/flash_toggle"
-        android:key="flash_color" />
+    </PreferenceCategory>
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/bt_toggle"
-        android:key="bt_color" />
+    <PreferenceCategory
+        android:title="@string/information">
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/airplane_toggle"
-        android:key="airplane_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/notifications_color"
+            android:key="notification_icon_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/music_back"
-        android:key="skip_prev_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/wifi_color"
+            android:key="wifi_signal_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/music_pp"
-        android:key="play_pause_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/mobile_color"
+            android:key="cell_signal_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/music_forward"
-        android:key="skip_forward_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/airplane_color"
+            android:key="airplane_icon_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/music_text"
-        android:key="song_info_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/battery_color"
+            android:key="battery_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/ss_background"
-        android:key="ss_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/clock_color"
+            android:key="clock_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/notifications_color"
-        android:key="notification_icon_color" />
+    </PreferenceCategory>
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/wifi_color"
-        android:key="wifi_signal_color" />
+    <PreferenceCategory
+        android:title="@string/toggles">
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/mobile_color"
-        android:key="cell_signal_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/sound_toggle"
+            android:key="sound_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/airplane_color"
-        android:key="airplane_icon_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/wifi_toggle"
+            android:key="wifi_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/battery_color"
-        android:key="battery_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/flash_toggle"
+            android:key="flash_color" />
 
-    <com.jaredrummler.android.colorpicker.ColorPreference
-        android:title="@string/clock_color"
-        android:key="clock_color" />
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/bt_toggle"
+            android:key="bt_color" />
+
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/airplane_toggle"
+            android:key="airplane_color" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/music">
+
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/music_back"
+            android:key="skip_prev_color" />
+
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/music_pp"
+            android:key="play_pause_color" />
+
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/music_forward"
+            android:key="skip_forward_color" />
+
+        <com.jaredrummler.android.colorpicker.ColorPreference
+            android:title="@string/music_text"
+            android:key="song_info_color" />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>

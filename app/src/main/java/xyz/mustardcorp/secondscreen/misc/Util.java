@@ -303,4 +303,30 @@ public class Util
 
         return contacts;
     }
+
+    public static boolean isToggleShown(Context context, String key) {
+        return Settings.Global.getInt(context.getContentResolver(), key + "_shown", 1) == 1;
+    }
+
+    public static void setToggleShown(Context context, String key, boolean shown) {
+        Settings.Global.putInt(context.getContentResolver(), key + "_shown", shown ? 1 : 0);
+    }
+
+    public static ArrayList<String> parseSavedToggleOrder(Context context, ArrayList<String> def) {
+        String load = Settings.Global.getString(context.getContentResolver(), "toggle_order");
+
+        if (isEmptyNull(load)) return def;
+
+        return new ArrayList<>(Arrays.asList(load.split("[,]")));
+    }
+
+    public static void saveNewToggleOrder(Context context, ArrayList<String> order) {
+        StringBuilder builder = new StringBuilder(order.get(0));
+
+        for (int i = 1; i < order.size(); i++) {
+            builder.append(",").append(order.get(i));
+        }
+
+        Settings.Global.putString(context.getContentResolver(), "toggle_order", builder.toString());
+    }
 }

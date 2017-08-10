@@ -18,6 +18,10 @@
         android:key="bt_color" />
 
     <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/airplane_toggle"
+        android:key="airplane_color" />
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
         android:title="@string/music_back"
         android:key="skip_prev_color" />
 
@@ -48,6 +52,10 @@
     <com.jaredrummler.android.colorpicker.ColorPreference
         android:title="@string/mobile_color"
         android:key="cell_signal_color" />
+
+    <com.jaredrummler.android.colorpicker.ColorPreference
+        android:title="@string/airplane_color"
+        android:key="airplane_icon_color" />
 
     <com.jaredrummler.android.colorpicker.ColorPreference
         android:title="@string/battery_color"

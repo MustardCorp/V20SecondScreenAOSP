@@ -421,91 +421,29 @@ public class SignBoardService extends Service
 
             load = Util.parseSavedViews(mContext, defaultLoad);
 
-            final CountDownLatch countDownLatch = new CountDownLatch(load.size());
-
             if (load.contains(TOGGLES_KEY)) {
-                new Thread(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        Looper.prepare();
-                        mToggles = new Toggles(mContext);
-                        mAvailablePages.put(TOGGLES_KEY, mToggles);
-                        countDownLatch.countDown();
-                    }
-                }).start();
+                mToggles = new Toggles(mContext);
+                mAvailablePages.put(TOGGLES_KEY, mToggles);
             }
             if (load.contains(MUSIC_KEY)) {
-                new Thread(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        Looper.prepare();
-                        mMusic = new Music(mContext);
-                        mAvailablePages.put(MUSIC_KEY, mMusic);
-                        countDownLatch.countDown();
-                    }
-                }).start();
+                mMusic = new Music(mContext);
+                mAvailablePages.put(MUSIC_KEY, mMusic);
             }
             if (load.contains(APPS_KEY)) {
-                new Thread(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        Looper.prepare();
-                        mLauncher = new AppLauncher(mContext);
-                        mAvailablePages.put(APPS_KEY, mLauncher);
-                        countDownLatch.countDown();
-                    }
-                }).start();
+                mLauncher = new AppLauncher(mContext);
+                mAvailablePages.put(APPS_KEY, mLauncher);
             }
             if (load.contains(INFO_KEY)) {
-                new Thread(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        Looper.prepare();
-                        mInfo = new Information(mContext);
-                        mAvailablePages.put(INFO_KEY, mInfo);
-                        countDownLatch.countDown();
-                    }
-                }).start();
+                mInfo = new Information(mContext);
+                mAvailablePages.put(INFO_KEY, mInfo);
             }
             if (load.contains(RECENTS_KEY)) {
-                new Thread(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        Looper.prepare();
-                        mRecents = new Recents(mContext);
-                        mAvailablePages.put(RECENTS_KEY, mRecents);
-                        countDownLatch.countDown();
-                    }
-                }).start();
+                mRecents = new Recents(mContext);
+                mAvailablePages.put(RECENTS_KEY, mRecents);
             }
             if (load.contains(CONTACTS_KEY)) {
-                new Thread(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        Looper.prepare();
-                        mContacts = new Contacts(mContext);
-                        mAvailablePages.put(CONTACTS_KEY, mContacts);
-                        countDownLatch.countDown();
-                    }
-                }).start();
-            }
-
-            try {
-                countDownLatch.await();
-            } catch (Exception e) {
-                e.printStackTrace();
+                mContacts = new Contacts(mContext);
+                mAvailablePages.put(CONTACTS_KEY, mContacts);
             }
 
             if (shouldReverse) {

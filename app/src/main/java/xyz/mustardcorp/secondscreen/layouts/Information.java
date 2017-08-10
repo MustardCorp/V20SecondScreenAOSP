@@ -175,6 +175,7 @@ public class Information extends BaseLayout
                 Uri mobile = Settings.Global.getUriFor("cell_signal_color");
                 Uri battery = Settings.Global.getUriFor("battery_color");
                 Uri clock = Settings.Global.getUriFor("clock_color");
+                Uri airplane = Settings.Global.getUriFor("airplane_icon_color");
 
                 if (uri.equals(notifs)) {
                     LinearLayout layout = mView.findViewById(R.id.notification_layout);
@@ -203,6 +204,11 @@ public class Information extends BaseLayout
                 if (uri.equals(clock)) {
                     TextClock textClock = mView.findViewById(R.id.current_time);
                     textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
+                }
+
+                if (uri.equals(airplane)) {
+                    ImageView airplaneView = mView.findViewById(R.id.airplane_mode);
+                    airplaneView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "airplane_icon_color", Color.WHITE));
                 }
 
                 super.onChange(selfChange, uri);

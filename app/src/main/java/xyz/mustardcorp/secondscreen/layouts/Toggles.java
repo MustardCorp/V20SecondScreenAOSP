@@ -9,10 +9,13 @@ import android.content.res.ColorStateList;
 import android.database.ContentObserver;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -24,6 +27,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import javax.microedition.khronos.opengles.GL;
@@ -43,10 +47,14 @@ public class Toggles extends BaseLayout
     public static final String WIFI_TOGGLE = "wifi";
     public static final String FLASHLIGHT_TOGGLE = "flashlight";
     public static final String BLUETOOTH_TOGGLE = "bluetooth";
+    public static final String AIRPLANE_TOGGLE = "airplane";
+
     public static final String SOUND_KEY = "sound_color";
     public static final String WIFI_KEY = "wifi_color";
     public static final String FLASHLIGHT_KEY = "flash_color";
     public static final String BT_KEY = "bt_color";
+    public static final String AIRPLANE_KEY = "airplane_color";
+
     public static final int SIZE = 150;
 
     private LinearLayout.LayoutParams mParams = new LinearLayout.LayoutParams(SIZE, SIZE, 1);
@@ -62,6 +70,7 @@ public class Toggles extends BaseLayout
         add(WIFI_TOGGLE);
         add(FLASHLIGHT_TOGGLE);
         add(BLUETOOTH_TOGGLE);
+        add(AIRPLANE_TOGGLE);
     }};
 
     private ImageView bluetooth;
@@ -73,6 +82,8 @@ public class Toggles extends BaseLayout
 
     private final Display display;
     private boolean mFlashlightEnabled;
+    private ImageView airplane;
+    private BroadcastReceiver mAirplaneBC;
 
     /**
      * Set orientations corrections, inflate views, register listeners; all the setup
@@ -120,9 +131,16 @@ public class Toggles extends BaseLayout
                 e.printStackTrace();
             }
         }
-        if (mBluetoothBC != null){
+        if (mBluetoothBC != null) {
             try {
                 mContext.unregisterReceiver(mBluetoothBC);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (mAirplaneBC != null) {
+            try {
+                mContext.unregisterReceiver(mAirplaneBC);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -217,6 +235,8 @@ public class Toggles extends BaseLayout
                 case BLUETOOTH_TOGGLE:
                     setBluetoothState();
                     break;
+                case AIRPLANE_TOGGLE:
+                    setAirplaneModeState();
             }
         }
     }
@@ -508,7 +528,7 @@ public class Toggles extends BaseLayout
      * Set proper Bluetooth color
      */
     private void setBluetoothColor() {
-        int pref = Settings.Global.getInt(mContext.getContentResolver(), "bt_color", Color.WHITE);
+        int pref = Settings.Global.getInt(mContext.getContentResolver(), BT_KEY, Color.WHITE);
         bluetooth.setImageTintList(ColorStateList.valueOf(pref));
     }
 
@@ -526,6 +546,82 @@ public class Toggles extends BaseLayout
         }
     }
 
+    private void setAirplaneModeState() {
+        airplane = new ImageView(mContext);
+        mView.addView(airplane, 0);
+        airplane.setLayoutParams(mParams);
+
+        mAirplaneBC = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                setAirplaneToggleState(airplane);
+            }
+        };
+
+        setAirplaneModeColor();
+        setAirplaneToggleState(airplane);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+
+        mContext.registerReceiver(mAirplaneBC, filter);
+
+        final ConnectivityManager mgr =  (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        Method setAirplaneMode = null;
+
+        try {
+            setAirplaneMode = ConnectivityManager.class.getMethod("setAirplaneMode", boolean.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        final Method setAirplaneModeFinal = setAirplaneMode;
+
+        airplane.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                boolean enabled = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
+
+                if (setAirplaneModeFinal != null) {
+                    try {
+                        setAirplaneModeFinal.invoke(mgr, !enabled);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        airplane.setOnLongClickListener(new View.OnLongClickListener()
+        {
+            @Override
+            public boolean onLongClick(View view)
+            {
+                mContext.startActivity(new Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS));
+                return true;
+            }
+        });
+    }
+
+    private void setAirplaneModeColor() {
+        int pref = Settings.Global.getInt(mContext.getContentResolver(), AIRPLANE_KEY, Color.WHITE);
+        airplane.setImageTintList(ColorStateList.valueOf(pref));
+    }
+    
+    private void setAirplaneToggleState(ImageView airplane) {
+        boolean enabled = Settings.Global.getInt(mContext.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
+
+        if (enabled) {
+            airplane.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_airplanemode_active_black_24dp, null));
+        } else {
+            airplane.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_airplanemode_inactive_black_24dp, null));
+        }
+    }
+
     /**
      * Register {@link ContentObserver} and listen for relevant changes
      */
@@ -537,17 +633,18 @@ public class Toggles extends BaseLayout
             @Override
             public void onChange(boolean selfChange, Uri uri)
             {
+
                 Uri wifi = Settings.Global.getUriFor(WIFI_KEY);
                 Uri sound = Settings.Global.getUriFor(SOUND_KEY);
                 Uri flash = Settings.Global.getUriFor(FLASHLIGHT_KEY);
                 Uri bt = Settings.Global.getUriFor(BT_KEY);
+                Uri airplane = Settings.Global.getUriFor(AIRPLANE_KEY);
 
                 if (uri.equals(wifi)) setWiFiColor();
                 if (uri.equals(sound)) setSoundColor();
                 if (uri.equals(flash)) setFlashlightColor();
                 if (uri.equals(bt)) setBluetoothColor();
-
-                super.onChange(selfChange);
+                if (uri.equals(airplane)) setAirplaneModeColor();
             }
         };
 

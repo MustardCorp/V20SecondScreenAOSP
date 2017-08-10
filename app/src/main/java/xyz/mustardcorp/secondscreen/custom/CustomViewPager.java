@@ -15,6 +15,9 @@ import com.mcs.viewpager.OrientationViewPager;
 
 import static android.view.View.OVER_SCROLL_NEVER;
 
+/**
+ * Mostly unnecessary class at the moment
+ */
 
 public class CustomViewPager extends OrientationViewPager
 {

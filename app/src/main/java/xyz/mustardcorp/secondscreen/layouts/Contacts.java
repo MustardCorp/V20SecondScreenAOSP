@@ -27,6 +27,11 @@ import xyz.mustardcorp.secondscreen.activities.AddContactActivity;
 import static xyz.mustardcorp.secondscreen.misc.Util.openApp;
 import static xyz.mustardcorp.secondscreen.misc.Util.openDisplayPhoto;
 
+/**
+ * Set of customizable contacts
+ * Refer to {@link AppLauncher} for comments (similar class)
+ */
+
 public class Contacts extends BaseLayout implements View.OnClickListener, View.OnLongClickListener
 {
     public static final String CONTACT_ID = "contact_id";

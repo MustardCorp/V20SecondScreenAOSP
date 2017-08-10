@@ -7,6 +7,10 @@ import android.util.Log;
 
 import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
+/**
+ * Make sure the service is restarted when the app gets reinstalled or updated
+ */
+
 public class AppUpdateReceiver extends BroadcastReceiver
 {
 

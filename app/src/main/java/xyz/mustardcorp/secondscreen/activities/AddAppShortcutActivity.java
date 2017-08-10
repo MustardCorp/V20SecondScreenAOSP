@@ -27,9 +27,15 @@ import java.util.TreeSet;
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.layouts.AppLauncher;
 
+/**
+ * Activity shown on long press of app shortcut or normal press on empty launcher
+ *
+ * Presents a list of available apps for the user to choose, and places the chosen app in the proper Settings.Global preference
+ */
+
 public class AddAppShortcutActivity extends AppCompatActivity
 {
-    private String whichApp = null;
+    private String whichApp = null; //the Settings.Global key to place the chosen app ID in (EG: app_1_id)
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -43,17 +49,26 @@ public class AddAppShortcutActivity extends AppCompatActivity
             Log.e("APP", whichApp);
         }
 
-        LoadApps.newInstance(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        LoadApps.newInstance(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); //the initialization takes a while, so let's just show a loading symbol until it's done
     }
 
+    /**
+     * Getter method for the slot ID
+     * @return the Settings.Global key
+     */
     public String getWhichApp() {
         return whichApp;
     }
 
     private static class LoadApps extends AsyncTask<Void, Void, Void> {
-        private WeakReference<AddAppShortcutActivity> mContext;
+        private WeakReference<AddAppShortcutActivity> mContext; //cheaty way to avoid static context leaks
         private CustomRecyclerAdapter mAdapter;
 
+        /**
+         * Create a new instance of this task
+         * @param context the parent Activity, since we can't call non-static methods from a static context
+         * @return the new instance of the task
+         */
         public static LoadApps newInstance(AddAppShortcutActivity context) {
             LoadApps apps = new LoadApps();
             apps.mContext = new WeakReference<>(context);
@@ -63,13 +78,17 @@ public class AddAppShortcutActivity extends AppCompatActivity
         @Override
         protected Void doInBackground(Void... voids)
         {
-            mAdapter = CustomRecyclerAdapter.newInstance(mContext.get());
+            mAdapter = CustomRecyclerAdapter.newInstance(mContext.get()); //all the work happens in the RecyclerAdapter, so this is put in the background thread
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid)
         {
+            /*
+             * Now that the adapter is finished loading, hide the loading symbol, set the RecyclerView's adapter and make it visible.
+             */
+
             mContext.get().findViewById(R.id.apps_loading).setVisibility(View.GONE);
             RecyclerView recyclerView = (RecyclerView) mContext.get().findViewById(R.id.app_list_rv);
             recyclerView.setVisibility(View.VISIBLE);
@@ -82,6 +101,9 @@ public class AddAppShortcutActivity extends AppCompatActivity
         }
     }
 
+    /**
+     * Class for storing package info
+     */
     class PInfo {
         public String appname = "";
         public String pname = "";
@@ -140,6 +162,7 @@ public class AddAppShortcutActivity extends AppCompatActivity
                     @Override
                     public void onClick(View view)
                     {
+                        //if the slot ID isn't null, set the app value
                         if (mActivity.get().getWhichApp() != null) {
                             Settings.Global.putString(mActivity.get().getContentResolver(), mActivity.get().getWhichApp(), getAppId());
                             mActivity.get().finish();
@@ -151,32 +174,61 @@ public class AddAppShortcutActivity extends AppCompatActivity
                 appIcon = mView.findViewById(R.id.app_icon);
             }
 
+            /**
+             * Set the app's name
+             * @param name app's display name
+             */
             public void setAppName(String name) {
                 appName.setText(name);
             }
 
+            /**
+             * Set the app's icon
+             * @param icon app's launcher icon
+             */
             public void setAppIcon(Drawable icon) {
                 appIcon.setImageDrawable(icon);
             }
 
+            /**
+             * Set the app's ID
+             * @param id app's String ID (EG: com.android.systemui)
+             */
             public void setAppId(String id) {
                 appId = id;
             }
 
+            /**
+             * Retrieve app's name
+             * @return app's display name
+             */
             public String getAppName() {
                 return appName.getText().toString();
             }
 
+            /**
+             * Retrieve app's icon
+             * @return app's launcher icon
+             */
             public Drawable getAppIcon() {
                 return appIcon.getDrawable();
             }
 
+            /**
+             * Retrieve app's String ID
+             * @return app's String ID (EG: com.android.systemui)
+             */
             public String getAppId() {
                 return appId;
             }
         }
     }
 
+    /**
+     * Get a list of the currently installed apps, sorted by name
+     * @param getSysPackages whether or not to include system packages
+     * @return sorted list of applications by name
+     */
     private TreeMap<String, PInfo> getInstalledApps(boolean getSysPackages) {
         TreeMap<String, PInfo> res = new TreeMap<>();
         List<PackageInfo> packs = getPackageManager().getInstalledPackages(0);

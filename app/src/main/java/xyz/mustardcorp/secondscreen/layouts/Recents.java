@@ -24,6 +24,11 @@ import java.util.TreeMap;
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.misc.Util;
 
+/**
+ * Short list of recent apps
+ * (BROKEN)
+ */
+
 public class Recents extends BaseLayout
 {
     private LinearLayout mView;

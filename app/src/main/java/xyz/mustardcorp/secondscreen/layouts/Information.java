@@ -70,6 +70,11 @@ import xyz.mustardcorp.secondscreen.services.SignBoardService;
 import static android.content.Context.BATTERY_SERVICE;
 import static android.content.Context.CONNECTIVITY_SERVICE;
 
+/**
+ * Basic information layout
+ * Shows time, battery status, signal status and notifications
+ */
+
 public class Information extends BaseLayout
 {
     private LinearLayout mView;
@@ -82,6 +87,10 @@ public class Information extends BaseLayout
     private final PowerManager.WakeLock wakeLock;
     private final PowerManager manager;
 
+    /**
+     * Create new instance, set up orientation and views, and set listeners
+     * @param context caller's context
+     */
     public Information(Context context) {
         super(context);
 
@@ -150,6 +159,9 @@ public class Information extends BaseLayout
         getContext().getContentResolver().unregisterContentObserver(mObserver);
     }
 
+    /**
+     * Register a {@link ContentObserver} and listen for relevant changes
+     */
     private void setContentObserver() {
         mObserver = new ContentObserver(new Handler())
         {
@@ -200,6 +212,9 @@ public class Information extends BaseLayout
         getContext().getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, mObserver);
     }
 
+    /**
+     * Order and rotate the child views properly for the current orientation
+     */
     private void setProperOrientation() {
         reverseViewsIfNeeded();
         switch (display.getRotation()) {
@@ -216,6 +231,9 @@ public class Information extends BaseLayout
         }
     }
 
+    /**
+     * {@link AppLauncher#reverseViews()}
+     */
     private void reverseViewsIfNeeded() {
         boolean shouldReverse = display.getRotation() == Surface.ROTATION_90;
 
@@ -232,6 +250,9 @@ public class Information extends BaseLayout
         }
     }
 
+    /**
+     * Register {@link BroadcastReceiver}s
+     */
     private void registerObserversAndReceivers() {
         IntentFilter changeFilter = new IntentFilter();
         changeFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
@@ -356,6 +377,9 @@ public class Information extends BaseLayout
         getContext().registerReceiver(actionChange, changeFilter);
     }
 
+    /**
+     * Set proper battery image and text to correspond with current battery level
+     */
     private void batteryValues() {
         BatteryManager bm = (BatteryManager)getContext().getSystemService(BATTERY_SERVICE);
         int batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
@@ -387,11 +411,17 @@ public class Information extends BaseLayout
         batteryLevel.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE));
     }
 
+    /**
+     * If Airplane Mode is on, disable the WiFi and Mobile signal bars and show an airplane icon
+     */
     private void showAirplaneModeIfNeeded() {
         boolean show = Settings.Global.getInt(getContext().getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
         mView.findViewById(R.id.airplane_mode).setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
+    /**
+     * Set proper WiFi signal levels
+     */
     private void wifiLevels() {
         WifiManager wm = (WifiManager)getContext().getSystemService(Context.WIFI_SERVICE);
         ConnectivityManager cm = (ConnectivityManager) getContext().getSystemService(CONNECTIVITY_SERVICE);
@@ -430,6 +460,9 @@ public class Information extends BaseLayout
         }
     }
 
+    /**
+     * Set proper Mobile signal levels
+     */
     private void cellLevels() {
         TelephonyManager tm = (TelephonyManager) getContext().getSystemService(Context.TELEPHONY_SERVICE);
         ImageView cellView = mView.findViewById(R.id.signal_level);
@@ -490,6 +523,9 @@ public class Information extends BaseLayout
         }
     }
 
+    /**
+     * If {@link Manifest.permission#ACCESS_COARSE_LOCATION} isn't granted, request it
+     */
     private void requestCoarsePerm() {
         Intent reqPerms = new Intent(getContext(), RequestPermissionsActivity.class);
         reqPerms.putExtra("permission", Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -497,6 +533,10 @@ public class Information extends BaseLayout
         getContext().startActivity(reqPerms);
     }
 
+    /**
+     * (CURRENTLY NON-FUNCTIONAL)
+     * Updates time in AOD mode
+     */
     private void updateClockOnWakelock() {
         Thread thread = new Thread(new Runnable()
         {
@@ -537,6 +577,9 @@ public class Information extends BaseLayout
         thread.start();
     }
 
+    /**
+     * Listen for notification changes
+     */
     public static class NotificationListener extends NotificationListenerService {
         private ArrayList<Notification> notifNames = new ArrayList<>();
         private BroadcastReceiver mReceiver;

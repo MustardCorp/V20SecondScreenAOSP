@@ -10,6 +10,10 @@ import android.util.Log;
 import xyz.mustardcorp.secondscreen.misc.Values;
 import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
+/**
+ * Restart service on app kill if enabled
+ */
+
 public class KillReceiver extends BroadcastReceiver
 {
 

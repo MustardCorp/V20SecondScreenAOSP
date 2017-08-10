@@ -19,6 +19,11 @@ import static xyz.mustardcorp.secondscreen.misc.Values.RECENTS_KEY;
 import static xyz.mustardcorp.secondscreen.misc.Values.TOGGLES_ID;
 import static xyz.mustardcorp.secondscreen.misc.Values.TOGGLES_KEY;
 
+/**
+ * Contains list of current pages and their values
+ * (used for {@link xyz.mustardcorp.secondscreen.OptionsActivity.OrderPreferenceFragment}
+ */
+
 public class DataItems
 {
     private Context mContext;
@@ -27,6 +32,10 @@ public class DataItems
         mContext = context;
     }
 
+    /**
+     * Get all views in order
+     * @return list of current pages, in proper order (disabled at the end)
+     */
     public ArrayList<AbstractDataProvider.Data> getAll() {
         ArrayList<String> saved = Util.parseSavedViews(mContext, Values.defaultLoad);
         ArrayList<AbstractDataProvider.Data> def = new ArrayList<AbstractDataProvider.Data>() {{

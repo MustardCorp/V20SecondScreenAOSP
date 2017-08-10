@@ -23,6 +23,9 @@ public class Values
     public static int RECENTS_ID = 5;
     public static int CONTACTS_ID = 6;
 
+    /**
+     * Default order and state of pages
+     */
     public static ArrayList<String> defaultLoad = new ArrayList<String>() {{
         add(INFO_KEY);
         add(TOGGLES_KEY);

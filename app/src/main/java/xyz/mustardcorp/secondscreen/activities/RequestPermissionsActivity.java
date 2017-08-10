@@ -5,6 +5,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+/**
+ * Activity to request runtime permissions directly from {@link xyz.mustardcorp.secondscreen.services.SignBoardService}
+ */
+
 public class RequestPermissionsActivity extends AppCompatActivity
 {
 

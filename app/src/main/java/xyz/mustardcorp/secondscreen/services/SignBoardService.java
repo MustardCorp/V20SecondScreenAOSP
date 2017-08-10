@@ -35,6 +35,7 @@ import com.mcs.viewpager.OrientationViewPager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
 
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.activities.RequestPermissionsActivity;
@@ -92,7 +93,7 @@ public class SignBoardService extends Service
         return null;
     }
 
-    @Override
+
     public int onStartCommand(Intent intent, int flags, int startId)
     {
         Toast.makeText(this, "SignBoard Started!", Toast.LENGTH_SHORT).show();
@@ -420,29 +421,91 @@ public class SignBoardService extends Service
 
             load = Util.parseSavedViews(mContext, defaultLoad);
 
+            final CountDownLatch countDownLatch = new CountDownLatch(load.size());
+
             if (load.contains(TOGGLES_KEY)) {
-                mToggles = new Toggles(mContext);
-                mAvailablePages.put(TOGGLES_KEY, mToggles);
+                new Thread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Looper.prepare();
+                        mToggles = new Toggles(mContext);
+                        mAvailablePages.put(TOGGLES_KEY, mToggles);
+                        countDownLatch.countDown();
+                    }
+                }).start();
             }
             if (load.contains(MUSIC_KEY)) {
-                mMusic = new Music(mContext);
-                mAvailablePages.put(MUSIC_KEY, mMusic);
+                new Thread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Looper.prepare();
+                        mMusic = new Music(mContext);
+                        mAvailablePages.put(MUSIC_KEY, mMusic);
+                        countDownLatch.countDown();
+                    }
+                }).start();
             }
             if (load.contains(APPS_KEY)) {
-                mLauncher = new AppLauncher(mContext);
-                mAvailablePages.put(APPS_KEY, mLauncher);
+                new Thread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Looper.prepare();
+                        mLauncher = new AppLauncher(mContext);
+                        mAvailablePages.put(APPS_KEY, mLauncher);
+                        countDownLatch.countDown();
+                    }
+                }).start();
             }
             if (load.contains(INFO_KEY)) {
-                mInfo = new Information(mContext);
-                mAvailablePages.put(INFO_KEY, mInfo);
+                new Thread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Looper.prepare();
+                        mInfo = new Information(mContext);
+                        mAvailablePages.put(INFO_KEY, mInfo);
+                        countDownLatch.countDown();
+                    }
+                }).start();
             }
             if (load.contains(RECENTS_KEY)) {
-                mRecents = new Recents(context);
-                mAvailablePages.put(RECENTS_KEY, mRecents);
+                new Thread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Looper.prepare();
+                        mRecents = new Recents(mContext);
+                        mAvailablePages.put(RECENTS_KEY, mRecents);
+                        countDownLatch.countDown();
+                    }
+                }).start();
             }
             if (load.contains(CONTACTS_KEY)) {
-                mContacts = new Contacts(context);
-                mAvailablePages.put(CONTACTS_KEY, mContacts);
+                new Thread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Looper.prepare();
+                        mContacts = new Contacts(mContext);
+                        mAvailablePages.put(CONTACTS_KEY, mContacts);
+                        countDownLatch.countDown();
+                    }
+                }).start();
+            }
+
+            try {
+                countDownLatch.await();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
             if (shouldReverse) {

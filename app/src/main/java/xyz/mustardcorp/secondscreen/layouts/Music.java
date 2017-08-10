@@ -25,6 +25,11 @@ import java.util.ArrayList;
 
 import xyz.mustardcorp.secondscreen.R;
 
+/**
+ * Simple music controller
+ * (BROKEN)
+ */
+
 public class Music extends BaseLayout
 {
     private Context mContext;

@@ -35,6 +35,11 @@ import xyz.mustardcorp.secondscreen.activities.AddAppShortcutActivity;
 
 import static xyz.mustardcorp.secondscreen.misc.Util.openApp;
 
+/**
+ * QuickLaunch for Android essentially
+ * A set of customizable launcher icons
+ */
+
 public class AppLauncher extends BaseLayout implements View.OnClickListener, View.OnLongClickListener
 {
     public static final String APP_1 = "app_1_id";
@@ -55,6 +60,10 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
     private ArrayList<View> originalView = new ArrayList<>();
     private ContentObserver stateObserver;
 
+    /**
+     * Create new instance of this class, and prepare all views, taking account of current orientation
+     * @param context of the caller
+     */
     public AppLauncher(Context context) {
         super(context);
         mContext = context;
@@ -115,6 +124,9 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
         listener.enable();
     }
 
+    /**
+     * Register {@link ContentObserver} on Settings.Global and listen for relevant changes
+     */
     private void listenForAppChange() {
         Handler handler = new Handler();
 
@@ -139,6 +151,9 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
         mContext.getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, stateObserver);
     }
 
+    /**
+     * When orientation is vertical
+     */
     private void setNormalOrientation() {
         ViewGroup.LayoutParams params = mView.getLayoutParams();
 
@@ -150,6 +165,9 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
         mView.requestLayout();
     }
 
+    /**
+     * When orientation is horizontal
+     */
     private void setHorizontalOrientation() {
         ViewGroup.LayoutParams params = mView.getLayoutParams();
 
@@ -162,6 +180,9 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
         mView.requestLayout();
     }
 
+    /**
+     * With the top of the device on the left, the child views need to be reversed for consistency
+     */
     private void reverseViews() {
         ArrayList<View> views = originalView;
 
@@ -180,6 +201,9 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
         }
     }
 
+    /**
+     * Add icons and listeners to each view
+     */
     private void addIcons() {
         String a1 = Settings.Global.getString(mContext.getContentResolver(), APP_1);
         String a2 = Settings.Global.getString(mContext.getContentResolver(), APP_2);

@@ -8,6 +8,10 @@ import android.widget.Toast;
 
 import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
+/**
+ * Start service on boot
+ */
+
 public class BootReceiver extends BroadcastReceiver
 {
 

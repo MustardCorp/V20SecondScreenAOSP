@@ -38,9 +38,17 @@ import xyz.mustardcorp.secondscreen.misc.Util;
 
 import static xyz.mustardcorp.secondscreen.misc.Util.openDisplayPhoto;
 
+/**
+ * Activity shown on long press of contact shortcut or normal press on empty contact
+ *
+ * Presents a list of available contacts for the user to choose, and places the chosen contact ID in the proper Settings.Global preference
+ *
+ * Refer to {@link AddAppShortcutActivity} for more detailed comments (it's basically the same activity)
+ */
+
 public class AddContactActivity extends AppCompatActivity
 {
-    private String whichContact = null;
+    private String whichContact = null; //which contact slot
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -54,9 +62,13 @@ public class AddContactActivity extends AppCompatActivity
             Log.e("CONTACT", whichContact);
         }
 
-        LoadContacts.newInstance(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        LoadContacts.newInstance(this).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR); //do the work in a background thread so we avoid freezing
     }
 
+    /**
+     * Retrieve contact slot ID
+     * @return contact slot ID (Settings.Global key)
+     */
     public String getWhichContact() {
         return whichContact;
     }

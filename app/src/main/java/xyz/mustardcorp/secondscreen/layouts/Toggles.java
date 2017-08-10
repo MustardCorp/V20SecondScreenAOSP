@@ -29,8 +29,13 @@ import java.util.ArrayList;
 import javax.microedition.khronos.opengles.GL;
 
 import xyz.mustardcorp.secondscreen.R;
+import xyz.mustardcorp.secondscreen.misc.FlashlightController;
 
 import static android.content.Context.WIFI_SERVICE;
+
+/**
+ * Similar to Android's QuickSettings, but colorable
+ */
 
 public class Toggles extends BaseLayout
 {
@@ -67,7 +72,12 @@ public class Toggles extends BaseLayout
     private ContentObserver mObserver;
 
     private final Display display;
+    private boolean mFlashlightEnabled;
 
+    /**
+     * Set orientations corrections, inflate views, register listeners; all the setup
+     * @param context caller's context
+     */
     public Toggles(Context context) {
         super(context);
         mContext = context;
@@ -89,10 +99,12 @@ public class Toggles extends BaseLayout
         setOrientationListener();
     }
 
+    @Override
     public LinearLayout getView() {
         return mView;
     }
 
+    @Override
     public void onDestroy() {
         if (mWiFiBC != null) {
             try {
@@ -118,6 +130,7 @@ public class Toggles extends BaseLayout
         mContext.getContentResolver().unregisterContentObserver(mObserver);
     }
 
+    @Override
     public void setOrientationListener() {
         OrientationEventListener listener = new OrientationEventListener(mContext)
         {
@@ -141,6 +154,9 @@ public class Toggles extends BaseLayout
         listener.enable();
     }
 
+    /**
+     * If device is vertical
+     */
     private void setNormalOrientation() {
         ViewGroup.LayoutParams params = mView.getLayoutParams();
 
@@ -152,6 +168,9 @@ public class Toggles extends BaseLayout
         mView.requestLayout();
     }
 
+    /**
+     * If device is horizontal
+     */
     private void setHorizontalOrientation() {
         ViewGroup.LayoutParams params = mView.getLayoutParams();
 
@@ -163,6 +182,9 @@ public class Toggles extends BaseLayout
         mView.requestLayout();
     }
 
+    /**
+     * Make sure toggles are in the desired order
+     */
     private void addInSetOrder() {
         ArrayList<String> set = defaultOrder;
 
@@ -199,6 +221,9 @@ public class Toggles extends BaseLayout
         }
     }
 
+    /**
+     * Make sure WiFi toggles reflects the current state
+     */
     private void setWiFiState() {
         final WifiManager wm = (WifiManager) mContext.getSystemService(WIFI_SERVICE);
 
@@ -244,11 +269,18 @@ public class Toggles extends BaseLayout
         });
     }
 
+    /**
+     * Set WiFi toggle color
+     */
     private void setWiFiColor() {
         int pref = Settings.Global.getInt(mContext.getContentResolver(), "wifi_color", Color.WHITE);
         wifi.setImageTintList(ColorStateList.valueOf(pref));
     }
 
+    /**
+     * Make sure toggle's image is correct
+     * @param wifi toggle
+     */
     private void setWiFiToggleState(ImageView wifi) {
         final WifiManager wm = (WifiManager) mContext.getSystemService(WIFI_SERVICE);
 
@@ -259,6 +291,9 @@ public class Toggles extends BaseLayout
         }
     }
 
+    /**
+     * Make sure sound toggles reflects correct state
+     */
     private void setSoundState() {
         final AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
 
@@ -313,11 +348,18 @@ public class Toggles extends BaseLayout
         });
     }
 
+    /**
+     * Set the color
+     */
     private void setSoundColor() {
         int pref = Settings.Global.getInt(mContext.getContentResolver(), "sound_color", Color.WHITE);
         sound.setImageTintList(ColorStateList.valueOf(pref));
     }
 
+    /**
+     * Set the image
+     * @param sound toggle
+     */
     private void setSoundToggleState(ImageView sound) {
         AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
 
@@ -334,63 +376,79 @@ public class Toggles extends BaseLayout
         }
     }
 
+    /**
+     * Set proper flashlight state
+     * (Flashlight implementation is buggy!)
+     */
     private void setFlashlightState() {
         flash = new ImageView(mContext);
         mView.addView(flash, 0);
         flash.setLayoutParams(mParams);
 
-//        final FlashlightController controller = new FlashlightController(mContext);
-//        controller.addListener(new FlashlightController.FlashlightListener()
-//        {
-//            @Override
-//            public void onFlashlightChanged(final boolean enabled)
-//            {
-//                new Handler(mContext.getMainLooper()).post(new Runnable()
-//                {
-//                    @Override
-//                    public void run()
-//                    {
-//                        setFlashlightToggleState(flash, enabled);
-//                    }
-//                });
-//            }
-//
-//            @Override
-//            public void onFlashlightError()
-//            {
-//
-//            }
-//
-//            @Override
-//            public void onFlashlightAvailabilityChanged(boolean available)
-//            {
-//
-//            }
-//        });
-//
+        final FlashlightController controller = new FlashlightController(mContext);
+        controller.addListener(new FlashlightController.FlashlightListener()
+        {
+            @Override
+            public void onFlashlightChanged(final boolean enabled)
+            {
+                if (mFlashlightEnabled != enabled)
+                {
+                    new Handler(mContext.getMainLooper()).post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            setFlashlightToggleState(flash, enabled);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFlashlightError()
+            {
+
+            }
+
+            @Override
+            public void onFlashlightAvailabilityChanged(boolean available)
+            {
+
+            }
+        });
+
         setFlashlightColor();
         setFlashlightToggleState(flash, false);
 
-//        flash.setOnClickListener(new View.OnClickListener()
-//        {
-//            @Override
-//            public void onClick(View view)
-//            {
-//                if (controller.isEnabled()) {
-//                    controller.setFlashlight(false);
-//                } else {
-//                    controller.setFlashlight(true);
-//                }
-//            }
-//        });
+        flash.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                if (controller.isEnabled()) {
+                    controller.setFlashlight(false);
+                } else {
+                    controller.setFlashlight(true);
+                }
+            }
+        });
     }
 
+    /**
+     * Set proper flashlight color
+     */
     private void setFlashlightColor() {
         int pref = Settings.Global.getInt(mContext.getContentResolver(), "flash_color", Color.WHITE);
         flash.setImageTintList(ColorStateList.valueOf(pref));
     }
 
+    /**
+     * Set toggle's image
+     * @param flashlight toggle
+     * @param enabled on or off
+     */
     private void setFlashlightToggleState(ImageView flashlight, boolean enabled) {
+        mFlashlightEnabled = enabled;
         if (enabled) {
             flashlight.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_flash_on_black_24dp, null));
         } else {
@@ -398,6 +456,9 @@ public class Toggles extends BaseLayout
         }
     }
 
+    /**
+     * Set proper Bluetooth state
+     */
     private void setBluetoothState() {
         bluetooth = new ImageView(mContext);
         mView.addView(bluetooth, 0);
@@ -443,11 +504,18 @@ public class Toggles extends BaseLayout
         });
     }
 
+    /**
+     * Set proper Bluetooth color
+     */
     private void setBluetoothColor() {
         int pref = Settings.Global.getInt(mContext.getContentResolver(), "bt_color", Color.WHITE);
         bluetooth.setImageTintList(ColorStateList.valueOf(pref));
     }
 
+    /**
+     * Set toggle's image
+     * @param bluetooth toggle
+     */
     private void setBluetoothToggleState(ImageView bluetooth) {
         final BluetoothAdapter ba = BluetoothAdapter.getDefaultAdapter();
 
@@ -458,6 +526,9 @@ public class Toggles extends BaseLayout
         }
     }
 
+    /**
+     * Register {@link ContentObserver} and listen for relevant changes
+     */
     private void registerContentObservers() {
         Handler handler = new Handler();
 

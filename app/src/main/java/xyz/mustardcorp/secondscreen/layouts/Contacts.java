@@ -149,7 +149,6 @@ public class Contacts extends BaseLayout implements View.OnClickListener, View.O
         params.height = 1040;
         params.width = 160;
 
-
         mView.setLayoutParams(params);
         mView.setOrientation(LinearLayout.VERTICAL);
         mView.requestLayout();

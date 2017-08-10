@@ -222,13 +222,13 @@ public class SignBoardService extends Service
             {
                 String action = intent.getAction();
                 if (action != null) {
-                    if (action.equals(Intent.ACTION_SCREEN_OFF)) {
-                        windowManager.removeView(screenLayout);
-                    }
-
-                    if (action.equals(Intent.ACTION_SCREEN_ON)) {
-                        windowManager.addView(screenLayout, screenLayout.getLayoutParams());
-                    }
+//                    if (action.equals(Intent.ACTION_SCREEN_OFF)) {
+//                        windowManager.removeView(screenLayout);
+//                    }
+//
+//                    if (action.equals(Intent.ACTION_SCREEN_ON)) {
+//                        windowManager.addView(screenLayout, screenLayout.getLayoutParams());
+//                    }
                 }
             }
         };

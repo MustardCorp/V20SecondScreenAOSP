@@ -34,6 +34,7 @@ import java.util.TreeMap;
 
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.misc.Contact;
+import xyz.mustardcorp.secondscreen.misc.Util;
 
 import static xyz.mustardcorp.secondscreen.misc.Util.openDisplayPhoto;
 
@@ -92,14 +93,16 @@ public class AddContactActivity extends AppCompatActivity
         }
     }
 
-    public static class CustomRecyclerAdapter extends RecyclerView.Adapter<CustomRecyclerAdapter.CustomViewHolder> {
+    public static class CustomRecyclerAdapter extends RecyclerView.Adapter<CustomRecyclerAdapter.CustomViewHolder>
+    {
 
         private TreeMap<String, Contact> contacts;
         private WeakReference<AddContactActivity> mActivity;
 
-        public static CustomRecyclerAdapter newInstance(AddContactActivity activity) {
+        public static CustomRecyclerAdapter newInstance(AddContactActivity activity)
+        {
             CustomRecyclerAdapter adapter = new CustomRecyclerAdapter();
-            adapter.contacts = new TreeMap<>(activity.compileContactsList());
+            adapter.contacts = new TreeMap<>(Util.compileContactsList(activity));
             adapter.mActivity = new WeakReference<>(activity);
             return adapter;
         }
@@ -122,20 +125,22 @@ public class AddContactActivity extends AppCompatActivity
         @Override
         public void onBindViewHolder(CustomViewHolder holder, int position)
         {
-            holder.setContactName(((Contact)contacts.values().toArray()[position]).name);
-            holder.setContactIcon(((Contact)contacts.values().toArray()[position]).avatar);
-            holder.setContactNumber(((Contact)contacts.values().toArray()[position]).number);
-            holder.setContactId(((Contact)contacts.values().toArray()[position]).id);
+            holder.setContactName(((Contact) contacts.values().toArray()[position]).name);
+            holder.setContactIcon(((Contact) contacts.values().toArray()[position]).avatar);
+            holder.setContactNumber(((Contact) contacts.values().toArray()[position]).number);
+            holder.setContactId(((Contact) contacts.values().toArray()[position]).id);
         }
 
-        public class CustomViewHolder extends RecyclerView.ViewHolder {
+        public class CustomViewHolder extends RecyclerView.ViewHolder
+        {
             private View mView;
             private final TextView contactName;
             private final ImageView contactIcon;
             private String contactNumber = null;
             private long contactId = -1;
 
-            public CustomViewHolder (View v) {
+            public CustomViewHolder(View v)
+            {
                 super(v);
                 mView = v;
 
@@ -144,7 +149,8 @@ public class AddContactActivity extends AppCompatActivity
                     @Override
                     public void onClick(View view)
                     {
-                        if (mActivity.get().getWhichContact() != null) {
+                        if (mActivity.get().getWhichContact() != null)
+                        {
                             Settings.Global.putString(mActivity.get().getContentResolver(), mActivity.get().getWhichContact(), String.valueOf(getContactId()));
                             mActivity.get().finish();
                         }
@@ -155,59 +161,46 @@ public class AddContactActivity extends AppCompatActivity
                 contactIcon = mView.findViewById(R.id.contact_icon);
             }
 
-            public void setContactName(String name) {
+            public void setContactName(String name)
+            {
                 contactName.setText(name);
             }
 
-            public void setContactIcon(Drawable icon) {
+            public void setContactIcon(Drawable icon)
+            {
                 contactIcon.setImageDrawable(icon);
             }
 
-            public void setContactNumber(String number) {
+            public void setContactNumber(String number)
+            {
                 contactNumber = number;
             }
 
-            public void setContactId(long id) {contactId = id;}
+            public void setContactId(long id)
+            {
+                contactId = id;
+            }
 
-            public String getContactName() {
+            public String getContactName()
+            {
                 return contactName.getText().toString();
             }
 
-            public Drawable getContactIcon() {
+            public Drawable getContactIcon()
+            {
                 return contactIcon.getDrawable();
             }
 
-            public String getContactNumber() {
+            public String getContactNumber()
+            {
                 return contactNumber;
             }
 
-            public long getContactId() { return contactId; }
+            public long getContactId()
+            {
+                return contactId;
+            }
         }
 
-    }
-
-    private TreeMap<String, Contact> compileContactsList() {
-        TreeMap<String, Contact> contacts = new TreeMap<>();
-
-        Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, "display_name");
-        while (phones.moveToNext())
-        {
-            String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-            String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-            String id = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
-
-            Contact contact = new Contact();
-            contact.name = name;
-            contact.number = phoneNumber;
-            contact.id = Long.decode(id);
-
-            InputStream inputStream = openDisplayPhoto(this, contact.id);
-            contact.avatar = Drawable.createFromStream(inputStream, "avatar");
-
-            contacts.put(contact.name, contact);
-        }
-        phones.close();
-
-        return contacts;
     }
 }

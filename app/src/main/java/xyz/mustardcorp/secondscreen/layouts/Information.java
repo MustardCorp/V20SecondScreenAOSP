@@ -106,8 +106,8 @@ public class Information extends BaseLayout
         batteryValues();
         wifiLevels();
 
-//        TextClock textClock = mView.findViewById(R.id.current_time);
-//        textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
+        TextClock textClock = mView.findViewById(R.id.current_time);
+        textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
 
         setContentObserver();
 
@@ -188,10 +188,10 @@ public class Information extends BaseLayout
                     batteryView.setCompoundDrawableTintList(ColorStateList.valueOf(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE)));
                 }
 
-//                if (uri.equals(clock)) {
-//                    TextClock textClock = mView.findViewById(R.id.current_time);
-//                    textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
-//                }
+                if (uri.equals(clock)) {
+                    TextClock textClock = mView.findViewById(R.id.current_time);
+                    textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
+                }
 
                 super.onChange(selfChange, uri);
             }
@@ -503,11 +503,11 @@ public class Information extends BaseLayout
             @Override
             public void run()
             {
-//                final TextClock textClock = mView.findViewById(R.id.current_time);
+                final TextClock textClock = mView.findViewById(R.id.current_time);
                 Calendar cal = Calendar.getInstance();
                 while (wakeLock.isHeld()) {
                     Date currentLocalTime = cal.getTime();
-                    DateFormat date = new SimpleDateFormat("hh:mm a", Locale.US);
+                    DateFormat date = new SimpleDateFormat("h:mm a", Locale.US);
                     final String localTime = date.format(currentLocalTime);
 
                     new Handler(Looper.getMainLooper()).post(new Runnable()

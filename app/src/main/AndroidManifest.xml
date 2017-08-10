@@ -42,8 +42,8 @@
             android:name=".services.SignBoardService"
             android:enabled="true"
             android:exported="true" />
-
-        <service android:name=".layouts.Information$NotificationListener"
+        <service
+            android:name=".layouts.Information$NotificationListener"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
@@ -87,12 +87,21 @@
         </activity>
         <activity
             android:name=".activities.AddAppShortcutActivity"
-            android:excludeFromRecents="true"></activity>
+            android:excludeFromRecents="true" />
+        <activity
+            android:name=".activities.AddContactActivity"
+            android:excludeFromRecents="true" />
+        <activity android:name=".activities.RequestPermissionsActivity" />
 
-        <activity android:name=".activities.AddContactActivity"
-            android:excludeFromRecents="true"></activity>
-
-        <activity android:name=".activities.RequestPermissionsActivity"></activity>
+        <receiver
+            android:name=".receivers.ScreenStateReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_OFF" />
+                <action android:name="android.intent.action.SCREEN_ON" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

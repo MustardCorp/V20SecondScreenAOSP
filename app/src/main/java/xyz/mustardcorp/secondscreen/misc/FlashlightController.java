@@ -130,7 +130,14 @@ public class FlashlightController {
 
     private synchronized void ensureHandler() {
         if (mHandler == null) {
-            HandlerThread thread = new HandlerThread(TAG, Process.THREAD_PRIORITY_BACKGROUND);
+            HandlerThread thread = new HandlerThread(TAG, Process.THREAD_PRIORITY_BACKGROUND) {
+                @Override
+                public void run()
+                {
+                    System.gc();
+                    super.run();
+                }
+            };
             thread.start();
             mHandler = new Handler(thread.getLooper());
         }

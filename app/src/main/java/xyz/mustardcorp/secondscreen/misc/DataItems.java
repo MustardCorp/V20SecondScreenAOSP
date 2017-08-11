@@ -5,6 +5,7 @@ import android.content.Context;
 import java.util.ArrayList;
 
 import xyz.mustardcorp.secondscreen.OptionsActivity;
+import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.custom.AbstractDataProvider;
 
 import static xyz.mustardcorp.secondscreen.misc.Values.APPS_ID;
@@ -87,7 +88,7 @@ public class DataItems
         @Override
         public String getText()
         {
-            return "Information";
+            return mContext.getResources().getString(R.string.information);
         }
 
         @Override
@@ -120,7 +121,7 @@ public class DataItems
         @Override
         public String getText()
         {
-            return "Toggles";
+            return mContext.getResources().getString(R.string.toggles);
         }
 
         @Override
@@ -153,7 +154,7 @@ public class DataItems
         @Override
         public String getText()
         {
-            return "Music";
+            return mContext.getResources().getString(R.string.music);
         }
 
         @Override
@@ -186,7 +187,7 @@ public class DataItems
         @Override
         public String getText()
         {
-            return "App Launcher";
+            return mContext.getResources().getString(R.string.launcher);
         }
 
         @Override
@@ -220,7 +221,7 @@ public class DataItems
         @Override
         public String getText()
         {
-            return "Recents";
+            return mContext.getResources().getString(R.string.recents);
         }
 
         @Override
@@ -254,7 +255,7 @@ public class DataItems
         @Override
         public String getText()
         {
-            return "Contacts";
+            return mContext.getResources().getString(R.string.contacts);
         }
 
         @Override

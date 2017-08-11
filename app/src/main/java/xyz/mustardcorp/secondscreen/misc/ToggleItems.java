@@ -4,6 +4,7 @@ import android.content.Context;
 
 import java.util.ArrayList;
 
+import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.custom.AbstractDataProvider;
 
 public class ToggleItems
@@ -66,7 +67,7 @@ public class ToggleItems
         @Override
         public String getText()
         {
-            return "Sound";
+            return mContext.getResources().getString(R.string.sound_toggle);
         }
 
         @Override
@@ -99,7 +100,7 @@ public class ToggleItems
         @Override
         public String getText()
         {
-            return "WiFi";
+            return mContext.getResources().getString(R.string.wifi_toggle);
         }
 
         @Override
@@ -132,7 +133,7 @@ public class ToggleItems
         @Override
         public String getText()
         {
-            return "Flashlight";
+            return mContext.getResources().getString(R.string.flash_toggle);
         }
 
         @Override
@@ -165,7 +166,7 @@ public class ToggleItems
         @Override
         public String getText()
         {
-            return "Bluetooth";
+            return mContext.getResources().getString(R.string.bt_toggle);
         }
 
         @Override
@@ -199,7 +200,7 @@ public class ToggleItems
         @Override
         public String getText()
         {
-            return "Airplane Mode";
+            return mContext.getResources().getString(R.string.airplane_toggle);
         }
 
         @Override

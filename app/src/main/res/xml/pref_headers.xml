@@ -1,21 +1,19 @@
 <preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- These settings headers are only used on tablets. -->
-
-    <header
-        android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$OtherPreferenceFragment"
-        android:title="options" />
-
     <header
         android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$ColorPreferenceFragment"
         android:title="@string/color" />
 
     <header
         android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$PageOrderPreferenceFragment"
-        android:title="Page Order" />
+        android:title="@string/page_order" />
 
     <header
         android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$ToggleOrderPreferenceFragment"
-        android:title="Toggle Order" />
+        android:title="@string/toggle_order" />
+
+    <header
+        android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$OtherPreferenceFragment"
+        android:title="@string/options" />
 
 </preference-headers>

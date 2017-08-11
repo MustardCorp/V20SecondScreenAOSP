@@ -2,18 +2,22 @@
 
     <header
         android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$ColorPreferenceFragment"
-        android:title="@string/color" />
+        android:title="@string/color"
+        android:summary="@string/color_desc"/>
 
     <header
         android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$PageOrderPreferenceFragment"
-        android:title="@string/page_order" />
+        android:title="@string/page_order"
+        android:summary="@string/page_order_desc"/>
 
     <header
         android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$ToggleOrderPreferenceFragment"
-        android:title="@string/toggle_order" />
+        android:title="@string/toggle_order"
+        android:summary="@string/toggle_order_desc"/>
 
     <header
         android:fragment="xyz.mustardcorp.secondscreen.OptionsActivity$OtherPreferenceFragment"
-        android:title="@string/options" />
+        android:title="@string/options"
+        android:summary="@string/options_desc"/>
 
 </preference-headers>

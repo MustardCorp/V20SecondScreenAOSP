@@ -29,6 +29,11 @@
     <string name="options">Options</string>
     <string name="unknown">Unknown</string>
 
+    <string name="color_desc">Color all the things!</string>
+    <string name="page_order_desc">Set the order of the pages.</string>
+    <string name="toggle_order_desc">Set the order of the QuickToggles.</string>
+    <string name="options_desc">Miscellaneous options.</string>
+
     <string name="general">General</string>
     <string name="information">Information Screen</string>
     <string name="toggles">Toggles Screen</string>

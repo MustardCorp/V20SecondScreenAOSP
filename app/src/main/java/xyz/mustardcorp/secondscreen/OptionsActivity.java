@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,10 +17,12 @@ import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
 import com.h6ah4i.android.widget.advrecyclerview.animator.DraggableItemAnimator;
 import com.h6ah4i.android.widget.advrecyclerview.animator.GeneralItemAnimator;
@@ -28,6 +31,7 @@ import com.h6ah4i.android.widget.advrecyclerview.draggable.RecyclerViewDragDropM
 import com.h6ah4i.android.widget.advrecyclerview.utils.WrapperAdapterUtils;
 import com.jaredrummler.android.colorpicker.ColorPreference;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +40,7 @@ import xyz.mustardcorp.secondscreen.custom.CustomDragAndDropAdapter;
 import xyz.mustardcorp.secondscreen.custom.TogglesDragAndDropAdapter;
 import xyz.mustardcorp.secondscreen.misc.DataItems;
 import xyz.mustardcorp.secondscreen.misc.ToggleItems;
+import xyz.mustardcorp.secondscreen.misc.Util;
 import xyz.mustardcorp.secondscreen.misc.Values;
 import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
@@ -68,6 +73,8 @@ public class OptionsActivity extends AppCompatPreferenceActivity
     {
         super.onCreate(savedInstanceState);
         setupActionBar();
+
+        getListView().setDivider(getResources().getDrawable(R.drawable.horizontal_divider, null));
     }
 
     /**
@@ -79,8 +86,9 @@ public class OptionsActivity extends AppCompatPreferenceActivity
         if (actionBar != null)
         {
             // Show the Up button in the action bar.
-            actionBar.setDisplayHomeAsUpEnabled(true);
+//            actionBar.setDisplayHomeAsUpEnabled(true);
         }
+
     }
 
     /**
@@ -140,6 +148,20 @@ public class OptionsActivity extends AppCompatPreferenceActivity
         }
 
         @Override
+        public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
+        {
+            try {
+                Method getListView = PreferenceFragment.class.getMethod("getListView");
+                ListView listView = (ListView) getListView.invoke(this);
+                listView.setDivider(getResources().getDrawable(R.drawable.horizontal_divider, null));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            super.onViewCreated(view, savedInstanceState);
+        }
+
+        @Override
         public boolean onOptionsItemSelected(MenuItem item)
         {
             int id = item.getItemId();
@@ -182,6 +204,20 @@ public class OptionsActivity extends AppCompatPreferenceActivity
                     });
                 }
             }
+        }
+
+        @Override
+        public void onViewCreated(View view, @Nullable Bundle savedInstanceState)
+        {
+            try {
+                Method getListView = PreferenceFragment.class.getMethod("getListView");
+                ListView listView = (ListView) getListView.invoke(this);
+                listView.setDivider(getResources().getDrawable(R.drawable.horizontal_divider, null));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            super.onViewCreated(view, savedInstanceState);
         }
 
         @Override

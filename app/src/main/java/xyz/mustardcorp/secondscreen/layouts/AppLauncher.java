@@ -96,22 +96,28 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
     public void setOrientationListener() {
         OrientationEventListener listener = new OrientationEventListener(mContext)
         {
+            private int oldRotation = display.getRotation();
+
             @Override
             public void onOrientationChanged(int i)
             {
-                switch (display.getRotation()) {
-                    case Surface.ROTATION_0:
-                    case Surface.ROTATION_180:
-                        setNormalOrientation();
-                        break;
-                    case Surface.ROTATION_90:
-                    case Surface.ROTATION_270:
-                        setHorizontalOrientation();
-                        break;
+                if (oldRotation != display.getRotation()) {
+                    switch (display.getRotation()) {
+                        case Surface.ROTATION_0:
+                        case Surface.ROTATION_180:
+                            setNormalOrientation();
+                            break;
+                        case Surface.ROTATION_90:
+                        case Surface.ROTATION_270:
+                            setHorizontalOrientation();
+                            break;
 
+                    }
+
+                    reverseViews();
+
+                    oldRotation = display.getRotation();
                 }
-
-                reverseViews();
             }
         };
         listener.enable();

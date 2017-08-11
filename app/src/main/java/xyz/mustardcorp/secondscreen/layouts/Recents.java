@@ -59,10 +59,16 @@ public class Recents extends BaseLayout
     {
         OrientationEventListener listener = new OrientationEventListener(getContext())
         {
+            private int oldRotation = display.getRotation();
+
             @Override
             public void onOrientationChanged(int i)
             {
-                addViews();
+                if (oldRotation != display.getRotation()) {
+                    addViews();
+
+                    oldRotation = display.getRotation();
+                }
             }
         };
         listener.enable();

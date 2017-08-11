@@ -298,7 +298,7 @@ public class SignBoardService extends Service
     private void setupOrientationListener() {
         OrientationEventListener listener = new OrientationEventListener(this)
         {
-            private int orientation = Surface.ROTATION_0;
+            private int orientation = display.getRotation();
 
             @Override
             public void onOrientationChanged(int i)

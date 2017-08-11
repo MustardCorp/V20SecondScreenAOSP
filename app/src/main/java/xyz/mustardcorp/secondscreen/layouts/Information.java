@@ -126,10 +126,15 @@ public class Information extends BaseLayout
     {
         OrientationEventListener listener = new OrientationEventListener(getContext())
         {
+            private int oldRotation = display.getRotation();
+
             @Override
             public void onOrientationChanged(int i)
             {
-                setProperOrientation();
+                if (oldRotation != display.getRotation()) {
+                    setProperOrientation();
+                    oldRotation = display.getRotation();
+                }
             }
         };
         listener.enable();

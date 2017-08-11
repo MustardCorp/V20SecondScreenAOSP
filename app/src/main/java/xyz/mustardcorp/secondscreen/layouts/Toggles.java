@@ -13,7 +13,9 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -31,6 +33,7 @@ import java.util.ArrayList;
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.misc.FlashlightController;
 import xyz.mustardcorp.secondscreen.misc.Util;
+import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
 import static android.content.Context.WIFI_SERVICE;
 import static xyz.mustardcorp.secondscreen.misc.Values.AIRPLANE_KEY;
@@ -73,6 +76,9 @@ public class Toggles extends BaseLayout
     private ImageView airplane;
     private BroadcastReceiver mAirplaneBC;
 
+    private Handler mHandler;
+    private Thread mCurrentThread;
+
     /**
      * Set orientations corrections, inflate views, register listeners; all the setup
      * @param context caller's context
@@ -80,9 +86,16 @@ public class Toggles extends BaseLayout
     public Toggles(Context context) {
         super(context);
         mContext = context;
+
+        mParams.gravity = Gravity.CENTER;
+
+        mHandler = SignBoardService.mTogglesHandler;
+        mCurrentThread = Thread.currentThread();
+
+        Log.e("MustardCorp Thread", mCurrentThread.toString());
+
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_toggles, null, false);
         mView.setLayoutDirection(LinearLayout.LAYOUT_DIRECTION_RTL);
-        mParams.gravity = Gravity.CENTER;
 
         display = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
@@ -673,13 +686,12 @@ public class Toggles extends BaseLayout
      * Register {@link ContentObserver} and listen for relevant changes
      */
     private void registerContentObservers() {
-        Handler handler = new Handler();
-
-        mObserver = new ContentObserver(handler)
+        mObserver = new ContentObserver(null)
         {
             @Override
-            public void onChange(boolean selfChange, Uri uri)
+            public void onChange(boolean selfChange, final Uri uri)
             {
+                Log.e("MustardCorp Thread", mCurrentThread.toString() + " " + Thread.currentThread().toString());
 
                 Uri wifi = Settings.Global.getUriFor(WIFI_KEY);
                 Uri sound = Settings.Global.getUriFor(SOUND_KEY);

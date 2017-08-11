@@ -2,19 +2,10 @@ package xyz.mustardcorp.secondscreen.layouts;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.database.ContentObserver;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Handler;
 import android.provider.Settings;
-import android.support.v7.widget.RecyclerView;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
@@ -24,14 +15,12 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.activities.AddAppShortcutActivity;
+import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
 import static xyz.mustardcorp.secondscreen.misc.Util.openApp;
 
@@ -60,6 +49,8 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
     private ArrayList<View> originalView = new ArrayList<>();
     private ContentObserver stateObserver;
 
+    private Handler mHandler;
+
     /**
      * Create new instance of this class, and prepare all views, taking account of current orientation
      * @param context of the caller
@@ -69,6 +60,8 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
         mContext = context;
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_apps, null, false);
         display = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+        mHandler = SignBoardService.mAppLauncherHandler;
 
         for (int i = 0; i < mView.getChildCount(); i++) {
             originalView.add(mView.getChildAt(i));
@@ -128,12 +121,10 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
      * Register {@link ContentObserver} on Settings.Global and listen for relevant changes
      */
     private void listenForAppChange() {
-        Handler handler = new Handler();
-
-        stateObserver = new ContentObserver(handler)
+        stateObserver = new ContentObserver(null)
         {
             @Override
-            public void onChange(boolean selfChange, Uri uri)
+            public void onChange(boolean selfChange, final Uri uri)
             {
                 Uri app1 = Settings.Global.getUriFor(APP_1);
                 Uri app2 = Settings.Global.getUriFor(APP_2);

@@ -2,19 +2,14 @@ package xyz.mustardcorp.secondscreen.layouts;
 
 import android.Manifest;
 import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.database.ContentObserver;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
@@ -59,7 +54,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.activities.RequestPermissionsActivity;
@@ -87,6 +81,8 @@ public class Information extends BaseLayout
     private final PowerManager.WakeLock wakeLock;
     private final PowerManager manager;
 
+    private Handler mHandler;
+
     /**
      * Create new instance, set up orientation and views, and set listeners
      * @param context caller's context
@@ -97,6 +93,8 @@ public class Information extends BaseLayout
         mView = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.layout_info, null, false);
         mNotifsView = mView.findViewById(R.id.notification_layout);
         display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+        mHandler = SignBoardService.mInfoHandler;
 
         manager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
         wakeLock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "aod_service");
@@ -163,13 +161,11 @@ public class Information extends BaseLayout
      * Register a {@link ContentObserver} and listen for relevant changes
      */
     private void setContentObserver() {
-        mObserver = new ContentObserver(new Handler())
+        mObserver = new ContentObserver(null)
         {
             @Override
-            public void onChange(boolean selfChange, Uri uri)
+            public void onChange(boolean selfChange, final Uri uri)
             {
-                Log.e("Something changed", uri.toString());
-
                 Uri notifs = Settings.Global.getUriFor("notification_icon_color");
                 Uri wifi = Settings.Global.getUriFor("wifi_signal_color");
                 Uri mobile = Settings.Global.getUriFor("cell_signal_color");
@@ -210,8 +206,6 @@ public class Information extends BaseLayout
                     ImageView airplaneView = mView.findViewById(R.id.airplane_mode);
                     airplaneView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "airplane_icon_color", Color.WHITE));
                 }
-
-                super.onChange(selfChange, uri);
             }
         };
 

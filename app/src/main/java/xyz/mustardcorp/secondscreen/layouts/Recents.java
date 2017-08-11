@@ -3,14 +3,13 @@ package xyz.mustardcorp.secondscreen.layouts;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
-import android.util.Log;
+import android.os.Handler;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,6 +22,7 @@ import java.util.TreeMap;
 
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.misc.Util;
+import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
 /**
  * Short list of recent bluetooth
@@ -37,10 +37,14 @@ public class Recents extends BaseLayout
     private ArrayList<View> originalLayout = new ArrayList<>();
     TableLayout.LayoutParams params = new TableLayout.LayoutParams(120, 120, 1);
 
+    private Handler mHandler;
+
     public Recents(Context context) {
         super(context);
         mView = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.layout_recents, null, false);
         display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+        mHandler = SignBoardService.mRecentsHandler;
 
         params.gravity = Gravity.CENTER;
 

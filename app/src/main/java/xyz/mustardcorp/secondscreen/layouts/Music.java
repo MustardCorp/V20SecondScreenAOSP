@@ -24,6 +24,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import xyz.mustardcorp.secondscreen.R;
+import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
 /**
  * Simple flash controller
@@ -40,12 +41,16 @@ public class Music extends BaseLayout
     private ContentObserver stateObserver;
     private BroadcastReceiver playingMusicReceiver;
 
+    private Handler mHandler;
+
     public Music(Context context) {
         super(context);
         mContext = context;
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_music, null, false);
         display = ((WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         audioManager = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+
+        mHandler = SignBoardService.mMusicHandler;
 
         originalView = new ArrayList<>();
         for (int i = 0; i < mView.getChildCount(); i++) {
@@ -82,9 +87,7 @@ public class Music extends BaseLayout
     }
 
     private void listenForColorChangeOrMusicChange() {
-        Handler handler = new Handler();
-
-        stateObserver = new ContentObserver(handler)
+        stateObserver = new ContentObserver(null)
         {
             @Override
             public void onChange(boolean selfChange)

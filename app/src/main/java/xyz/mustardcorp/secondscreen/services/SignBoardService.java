@@ -13,13 +13,13 @@ import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.PowerManager;
+import android.os.Process;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v4.content.PermissionChecker;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -81,7 +81,21 @@ public class SignBoardService extends Service
     private ContentObserver observer;
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
 
-    private Handler mHandler;
+    public static Handler mHandler;
+
+    public static HandlerThread mAppLauncherHandlerThread;
+    public static HandlerThread mContactsHandlerThread;
+    public static HandlerThread mInfoHandlerThread;
+    public static HandlerThread mMusicHandlerThread;
+    public static HandlerThread mRecentsHandlerThread;
+    public static HandlerThread mTogglesHandlerThread;
+
+    public static Handler mAppLauncherHandler;
+    public static Handler mContactsHandler;
+    public static Handler mInfoHandler;
+    public static Handler mMusicHandler;
+    public static Handler mRecentsHandler;
+    public static Handler mTogglesHandler;
 
     public SignBoardService()
     {
@@ -98,6 +112,30 @@ public class SignBoardService extends Service
     {
         Toast.makeText(this, "SignBoard Started!", Toast.LENGTH_SHORT).show();
         Log.i(TAG, "SignBoard Service Started!");
+
+        mAppLauncherHandlerThread = new HandlerThread(TAG + "APP", Process.THREAD_PRIORITY_FOREGROUND);
+        mAppLauncherHandlerThread.start();
+        mAppLauncherHandler = new Handler(mAppLauncherHandlerThread.getLooper());
+
+        mContactsHandlerThread = new HandlerThread(TAG + "CONTACT", Process.THREAD_PRIORITY_FOREGROUND);
+        mContactsHandlerThread.start();
+        mContactsHandler = new Handler(mContactsHandlerThread.getLooper());
+
+        mInfoHandlerThread = new HandlerThread(TAG + "INFO", Process.THREAD_PRIORITY_FOREGROUND);
+        mInfoHandlerThread.start();
+        mInfoHandler = new Handler(mInfoHandlerThread.getLooper());
+
+        mMusicHandlerThread = new HandlerThread(TAG + "MUSIC", Process.THREAD_PRIORITY_FOREGROUND);
+        mMusicHandlerThread.start();
+        mMusicHandler = new Handler(mMusicHandlerThread.getLooper());
+
+        mRecentsHandlerThread = new HandlerThread(TAG + "RECENT", Process.THREAD_PRIORITY_FOREGROUND);
+        mRecentsHandlerThread.start();
+        mRecentsHandler = new Handler(mRecentsHandlerThread.getLooper());
+
+        mTogglesHandlerThread = new HandlerThread(TAG + "TOGGLE", Process.THREAD_PRIORITY_FOREGROUND);
+        mTogglesHandlerThread.start();
+        mTogglesHandler = new Handler(mTogglesHandlerThread.getLooper());
 
         mHandler = new Handler(Looper.myLooper());
         
@@ -421,29 +459,85 @@ public class SignBoardService extends Service
 
             load = Util.parseSavedViews(mContext, defaultLoad);
 
+            final CountDownLatch latch = new CountDownLatch(load.size());
+
             if (load.contains(TOGGLES_KEY)) {
-                mToggles = new Toggles(mContext);
-                mAvailablePages.put(TOGGLES_KEY, mToggles);
+                mTogglesHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mToggles = new Toggles(mContext);
+                        mAvailablePages.put(TOGGLES_KEY, mToggles);
+                        latch.countDown();
+                    }
+                });
             }
             if (load.contains(MUSIC_KEY)) {
-                mMusic = new Music(mContext);
-                mAvailablePages.put(MUSIC_KEY, mMusic);
+                mMusicHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mMusic = new Music(mContext);
+                        mAvailablePages.put(MUSIC_KEY, mMusic);
+                        latch.countDown();
+                    }
+                });
             }
             if (load.contains(APPS_KEY)) {
-                mLauncher = new AppLauncher(mContext);
-                mAvailablePages.put(APPS_KEY, mLauncher);
+                mAppLauncherHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mLauncher = new AppLauncher(mContext);
+                        mAvailablePages.put(APPS_KEY, mLauncher);
+                        latch.countDown();
+                    }
+                });
             }
             if (load.contains(INFO_KEY)) {
-                mInfo = new Information(mContext);
-                mAvailablePages.put(INFO_KEY, mInfo);
+                mInfoHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mInfo = new Information(mContext);
+                        mAvailablePages.put(INFO_KEY, mInfo);
+                        latch.countDown();
+                    }
+                });
             }
             if (load.contains(RECENTS_KEY)) {
-                mRecents = new Recents(mContext);
-                mAvailablePages.put(RECENTS_KEY, mRecents);
+                mRecentsHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mRecents = new Recents(mContext);
+                        mAvailablePages.put(RECENTS_KEY, mRecents);
+                        latch.countDown();
+                    }
+                });
             }
             if (load.contains(CONTACTS_KEY)) {
-                mContacts = new Contacts(mContext);
-                mAvailablePages.put(CONTACTS_KEY, mContacts);
+                mContactsHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mContacts = new Contacts(mContext);
+                        mAvailablePages.put(CONTACTS_KEY, mContacts);
+                        latch.countDown();
+                    }
+                });
+            }
+
+            try {
+                latch.await();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
             if (shouldReverse) {

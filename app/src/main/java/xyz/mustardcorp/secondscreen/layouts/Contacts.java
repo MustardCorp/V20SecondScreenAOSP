@@ -21,10 +21,9 @@ import android.widget.LinearLayout;
 import java.util.ArrayList;
 
 import xyz.mustardcorp.secondscreen.R;
-import xyz.mustardcorp.secondscreen.activities.AddAppShortcutActivity;
 import xyz.mustardcorp.secondscreen.activities.AddContactActivity;
+import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
-import static xyz.mustardcorp.secondscreen.misc.Util.openApp;
 import static xyz.mustardcorp.secondscreen.misc.Util.openDisplayPhoto;
 
 /**
@@ -54,10 +53,14 @@ public class Contacts extends BaseLayout implements View.OnClickListener, View.O
     private final Display display;
     private ContentObserver stateObserver;
 
+    private Handler mHandler;
+
     public Contacts(Context context) {
         super(context);
         mView = (LinearLayout) LayoutInflater.from(getContext()).inflate(R.layout.layout_contacts, null, false);
         display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+        mHandler = SignBoardService.mContactsHandler;
 
         for (int i = 0; i < mView.getChildCount(); i++) {
             originalView.add(mView.getChildAt(i));
@@ -105,12 +108,10 @@ public class Contacts extends BaseLayout implements View.OnClickListener, View.O
     }
 
     private void listenForContactChange() {
-        Handler handler = new Handler();
-
-        stateObserver = new ContentObserver(handler)
+        stateObserver = new ContentObserver(null)
         {
             @Override
-            public void onChange(boolean selfChange, Uri uri)
+            public void onChange(boolean selfChange, final Uri uri)
             {
                 Uri contact1 = Settings.Global.getUriFor(CONTACT_1);
                 Uri contact2 = Settings.Global.getUriFor(CONTACT_2);

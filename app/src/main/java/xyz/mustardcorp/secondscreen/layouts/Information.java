@@ -171,46 +171,53 @@ public class Information extends BaseLayout
             @Override
             public void onChange(boolean selfChange, final Uri uri)
             {
-                Uri notifs = Settings.Global.getUriFor("notification_icon_color");
-                Uri wifi = Settings.Global.getUriFor("wifi_signal_color");
-                Uri mobile = Settings.Global.getUriFor("cell_signal_color");
-                Uri battery = Settings.Global.getUriFor("battery_color");
-                Uri clock = Settings.Global.getUriFor("clock_color");
-                Uri airplane = Settings.Global.getUriFor("airplane_icon_color");
+                mHandler.post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Uri notifs = Settings.Global.getUriFor("notification_icon_color");
+                        Uri wifi = Settings.Global.getUriFor("wifi_signal_color");
+                        Uri mobile = Settings.Global.getUriFor("cell_signal_color");
+                        Uri battery = Settings.Global.getUriFor("battery_color");
+                        Uri clock = Settings.Global.getUriFor("clock_color");
+                        Uri airplane = Settings.Global.getUriFor("airplane_icon_color");
 
-                if (uri.equals(notifs)) {
-                    LinearLayout layout = mView.findViewById(R.id.notification_layout);
-                    for (int i = 0; i < layout.getChildCount(); i++) {
-                        ImageView view = (ImageView) layout.getChildAt(i);
-                        view.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "notification_icon_color", Color.WHITE), PorterDuff.Mode.SRC_IN);
+                        if (uri.equals(notifs)) {
+                            LinearLayout layout = mView.findViewById(R.id.notification_layout);
+                            for (int i = 0; i < layout.getChildCount(); i++) {
+                                ImageView view = (ImageView) layout.getChildAt(i);
+                                view.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "notification_icon_color", Color.WHITE), PorterDuff.Mode.SRC_IN);
+                            }
+                        }
+
+                        if (uri.equals(wifi)) {
+                            ImageView wifiView = mView.findViewById(R.id.wifi_level);
+                            wifiView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "wifi_signal_color", Color.WHITE), PorterDuff.Mode.SRC_IN);
+                        }
+
+                        if (uri.equals(mobile)) {
+                            ImageView mobileView = mView.findViewById(R.id.signal_level);
+                            mobileView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "cell_signal_color", Color.WHITE), PorterDuff.Mode.SRC_IN);
+                        }
+
+                        if (uri.equals(battery)) {
+                            TextView batteryView = mView.findViewById(R.id.battery_percent);
+                            batteryView.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE));
+                            batteryView.setCompoundDrawableTintList(ColorStateList.valueOf(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE)));
+                        }
+
+                        if (uri.equals(clock)) {
+                            TextClock textClock = mView.findViewById(R.id.current_time);
+                            textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
+                        }
+
+                        if (uri.equals(airplane)) {
+                            ImageView airplaneView = mView.findViewById(R.id.airplane_mode);
+                            airplaneView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "airplane_icon_color", Color.WHITE));
+                        }
                     }
-                }
-
-                if (uri.equals(wifi)) {
-                    ImageView wifiView = mView.findViewById(R.id.wifi_level);
-                    wifiView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "wifi_signal_color", Color.WHITE), PorterDuff.Mode.SRC_IN);
-                }
-
-                if (uri.equals(mobile)) {
-                    ImageView mobileView = mView.findViewById(R.id.signal_level);
-                    mobileView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "cell_signal_color", Color.WHITE), PorterDuff.Mode.SRC_IN);
-                }
-
-                if (uri.equals(battery)) {
-                    TextView batteryView = mView.findViewById(R.id.battery_percent);
-                    batteryView.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE));
-                    batteryView.setCompoundDrawableTintList(ColorStateList.valueOf(Settings.Global.getInt(getContext().getContentResolver(), "battery_color", Color.WHITE)));
-                }
-
-                if (uri.equals(clock)) {
-                    TextClock textClock = mView.findViewById(R.id.current_time);
-                    textClock.setTextColor(Settings.Global.getInt(getContext().getContentResolver(), "clock_color", Color.WHITE));
-                }
-
-                if (uri.equals(airplane)) {
-                    ImageView airplaneView = mView.findViewById(R.id.airplane_mode);
-                    airplaneView.setColorFilter(Settings.Global.getInt(getContext().getContentResolver(), "airplane_icon_color", Color.WHITE));
-                }
+                });
             }
         };
 

@@ -12,6 +12,7 @@ import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -35,6 +36,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.microedition.khronos.opengles.GL;
 
 import xyz.mustardcorp.secondscreen.R;
 import xyz.mustardcorp.secondscreen.misc.Util;
@@ -108,9 +111,23 @@ public class Music extends BaseLayout
         stateObserver = new ContentObserver(null)
         {
             @Override
-            public void onChange(boolean selfChange)
+            public void onChange(boolean selfChange, Uri uri)
             {
-                setColorsAndStates();
+                Uri backUri = Settings.Global.getUriFor("skip_prev_color");
+                Uri ppUri = Settings.Global.getUriFor("play_pause_color");
+                Uri forUri = Settings.Global.getUriFor("skip_forward_color");
+                Uri infoUri = Settings.Global.getUriFor("song_info_color");
+
+                if (uri.equals(backUri) || uri.equals(ppUri) || uri.equals(forUri) || uri.equals(infoUri)) {
+                    mHandler.post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            setColorsAndStates();
+                        }
+                    });
+                }
             }
         };
 
@@ -126,7 +143,6 @@ public class Music extends BaseLayout
                     @Override
                     public void run()
                     {
-                        Log.e("MustardCorp Music", intent.getAction());
                         setColorsAndStates();
                     }
                 });
@@ -179,16 +195,8 @@ public class Music extends BaseLayout
         ImageView back = mView.findViewById(R.id.skip_back);
         ImageView playpause = mView.findViewById(R.id.play_pause);
         ImageView forward = mView.findViewById(R.id.skip_forward);
-        final TextView song = mView.findViewById(R.id.song_info);
-
-        mHandler.postDelayed(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                song.setSelected(true);
-            }
-        }, 500);
+        TextView song = mView.findViewById(R.id.song_info);
+        song.setSelected(true);
 
         int backColor = Settings.Global.getInt(mContext.getContentResolver(), "skip_prev_color", Color.WHITE);
         int playpauseColor = Settings.Global.getInt(mContext.getContentResolver(), "play_pause_color", Color.WHITE);

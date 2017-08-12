@@ -4,6 +4,7 @@ import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -44,7 +45,7 @@ public class Recents extends BaseLayout
         mView = (LinearLayout) LayoutInflater.from(context).inflate(R.layout.layout_recents, null, false);
         display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-        mHandler = SignBoardService.mRecentsHandler;
+        mHandler = new Handler(Looper.getMainLooper());
 
         params.gravity = Gravity.CENTER;
 

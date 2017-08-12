@@ -61,7 +61,7 @@ public class Contacts extends BaseLayout implements View.OnClickListener, View.O
         mView = (LinearLayout) LayoutInflater.from(getContext()).inflate(R.layout.layout_contacts, null, false);
         display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-        mHandler = SignBoardService.mContactsHandler;
+        mHandler = new Handler(Looper.getMainLooper());
 
         for (int i = 0; i < mView.getChildCount(); i++) {
             originalView.add(mView.getChildAt(i));
@@ -137,7 +137,7 @@ public class Contacts extends BaseLayout implements View.OnClickListener, View.O
                         uri.equals(contact6) ||
                         uri.equals(contact7) ||
                         uri.equals(contact8)) {
-                    new Handler(Looper.getMainLooper()).post(new Runnable()
+                    mHandler.post(new Runnable()
                     {
                         @Override
                         public void run()

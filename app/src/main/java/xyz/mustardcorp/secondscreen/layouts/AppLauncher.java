@@ -62,7 +62,7 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_apps, null, false);
         display = ((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-        mHandler = SignBoardService.mAppLauncherHandler;
+        mHandler = new Handler(Looper.getMainLooper());
 
         for (int i = 0; i < mView.getChildCount(); i++) {
             originalView.add(mView.getChildAt(i));
@@ -141,7 +141,7 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
                 Uri app6 = Settings.Global.getUriFor(APP_6);
 
                 if (uri.equals(app1) || uri.equals(app2) || uri.equals(app3) || uri.equals(app4) || uri.equals(app5) || uri.equals(app6)) {
-                    new Handler(Looper.getMainLooper()).post(new Runnable()
+                    mHandler.post(new Runnable()
                     {
                         @Override
                         public void run()

@@ -77,8 +77,6 @@ public class Toggles extends BaseLayout
     private BroadcastReceiver mAirplaneBC;
 
     private Handler mHandler;
-    private Thread mCurrentThread;
-
     /**
      * Set orientations corrections, inflate views, register listeners; all the setup
      * @param context caller's context
@@ -89,10 +87,7 @@ public class Toggles extends BaseLayout
 
         mParams.gravity = Gravity.CENTER;
 
-        mHandler = SignBoardService.mTogglesHandler;
-        mCurrentThread = Thread.currentThread();
-
-        Log.e("MustardCorp Thread", mCurrentThread.toString());
+        mHandler = new Handler(Looper.getMainLooper());
 
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_toggles, null, false);
         mView.setLayoutDirection(LinearLayout.LAYOUT_DIRECTION_RTL);
@@ -170,7 +165,7 @@ public class Toggles extends BaseLayout
                             break;
                     }
 
-                    new Handler(Looper.getMainLooper()).post(new Runnable()
+                    mHandler.post(new Runnable()
                     {
                         @Override
                         public void run()
@@ -453,7 +448,7 @@ public class Toggles extends BaseLayout
                 {
                     if (mFlashlightEnabled != enabled)
                     {
-                        new Handler(mContext.getMainLooper()).post(new Runnable()
+                        mHandler.post(new Runnable()
                         {
                             @Override
                             public void run()
@@ -704,7 +699,7 @@ public class Toggles extends BaseLayout
             @Override
             public void onChange(boolean selfChange, final Uri uri)
             {
-                new Handler(Looper.getMainLooper()).post(new Runnable()
+                mHandler.post(new Runnable()
                 {
                     @Override
                     public void run()

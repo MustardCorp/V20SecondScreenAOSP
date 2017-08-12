@@ -94,7 +94,7 @@ public class Information extends BaseLayout
         mNotifsView = mView.findViewById(R.id.notification_layout);
         display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
-        mHandler = SignBoardService.mInfoHandler;
+        mHandler = new Handler(Looper.getMainLooper());
 
         manager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
         wakeLock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "aod_service");
@@ -555,7 +555,7 @@ public class Information extends BaseLayout
                     DateFormat date = new SimpleDateFormat("h:mm a", Locale.US);
                     final String localTime = date.format(currentLocalTime);
 
-                    new Handler(Looper.getMainLooper()).post(new Runnable()
+                    mHandler.post(new Runnable()
                     {
                         @Override
                         public void run()

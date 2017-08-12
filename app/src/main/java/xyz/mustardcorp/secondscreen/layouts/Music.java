@@ -67,7 +67,7 @@ public class Music extends BaseLayout
         audioManager = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
         sessionManager = (MediaSessionManager) getContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
 
-        mHandler = SignBoardService.mMusicHandler;
+        mHandler = new Handler(Looper.getMainLooper());
 
         originalView = new ArrayList<>();
         for (int i = 0; i < mView.getChildCount(); i++) {
@@ -121,7 +121,7 @@ public class Music extends BaseLayout
             @Override
             public void onReceive(Context context, final Intent intent)
             {
-                new Handler(Looper.getMainLooper()).post(new Runnable()
+                mHandler.post(new Runnable()
                 {
                     @Override
                     public void run()
@@ -159,7 +159,7 @@ public class Music extends BaseLayout
             @MainThread
             public void onPlaybackStateChanged(@NonNull PlaybackState state)
             {
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable()
+                mHandler.postDelayed(new Runnable()
                 {
                     @Override
                     public void run()
@@ -179,8 +179,16 @@ public class Music extends BaseLayout
         ImageView back = mView.findViewById(R.id.skip_back);
         ImageView playpause = mView.findViewById(R.id.play_pause);
         ImageView forward = mView.findViewById(R.id.skip_forward);
-        TextView song = mView.findViewById(R.id.song_info);
-        song.setSelected(true);
+        final TextView song = mView.findViewById(R.id.song_info);
+
+        mHandler.postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                song.setSelected(true);
+            }
+        }, 500);
 
         int backColor = Settings.Global.getInt(mContext.getContentResolver(), "skip_prev_color", Color.WHITE);
         int playpauseColor = Settings.Global.getInt(mContext.getContentResolver(), "play_pause_color", Color.WHITE);

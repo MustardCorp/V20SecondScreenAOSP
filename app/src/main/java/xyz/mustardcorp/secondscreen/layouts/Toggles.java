@@ -170,7 +170,14 @@ public class Toggles extends BaseLayout
                             break;
                     }
 
-                    addInSetOrder();
+                    new Handler(Looper.getMainLooper()).post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            addInSetOrder();
+                        }
+                    });
 
                     oldRotation = display.getRotation();
                 }
@@ -697,36 +704,41 @@ public class Toggles extends BaseLayout
             @Override
             public void onChange(boolean selfChange, final Uri uri)
             {
-                Log.e("MustardCorp Thread", mCurrentThread.toString() + " " + Thread.currentThread().toString());
+                new Handler(Looper.getMainLooper()).post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Uri wifi = Settings.Global.getUriFor(WIFI_KEY);
+                        Uri sound = Settings.Global.getUriFor(SOUND_KEY);
+                        Uri flash = Settings.Global.getUriFor(FLASHLIGHT_KEY);
+                        Uri bt = Settings.Global.getUriFor(BT_KEY);
+                        Uri airplane = Settings.Global.getUriFor(AIRPLANE_KEY);
 
-                Uri wifi = Settings.Global.getUriFor(WIFI_KEY);
-                Uri sound = Settings.Global.getUriFor(SOUND_KEY);
-                Uri flash = Settings.Global.getUriFor(FLASHLIGHT_KEY);
-                Uri bt = Settings.Global.getUriFor(BT_KEY);
-                Uri airplane = Settings.Global.getUriFor(AIRPLANE_KEY);
+                        Uri wifiShown = Settings.Global.getUriFor(WIFI_TOGGLE + "_shown");
+                        Uri soundShown = Settings.Global.getUriFor(SOUND_TOGGLE + "_shown");
+                        Uri flashShown = Settings.Global.getUriFor(FLASHLIGHT_TOGGLE + "_shown");
+                        Uri btShown = Settings.Global.getUriFor(BLUETOOTH_TOGGLE + "_shown");
+                        Uri airplaneShown = Settings.Global.getUriFor(AIRPLANE_TOGGLE + "_shown");
 
-                Uri wifiShown = Settings.Global.getUriFor(WIFI_TOGGLE + "_shown");
-                Uri soundShown = Settings.Global.getUriFor(SOUND_TOGGLE + "_shown");
-                Uri flashShown = Settings.Global.getUriFor(FLASHLIGHT_TOGGLE + "_shown");
-                Uri btShown = Settings.Global.getUriFor(BLUETOOTH_TOGGLE + "_shown");
-                Uri airplaneShown = Settings.Global.getUriFor(AIRPLANE_TOGGLE + "_shown");
+                        Uri toggleOrder = Settings.Global.getUriFor("toggle_order");
 
-                Uri toggleOrder = Settings.Global.getUriFor("toggle_order");
+                        if (uri.equals(wifi)) setWiFiColor();
+                        if (uri.equals(sound)) setSoundColor();
+                        if (uri.equals(flash)) setFlashlightColor();
+                        if (uri.equals(bt)) setBluetoothColor();
+                        if (uri.equals(airplane)) setAirplaneModeColor();
 
-                if (uri.equals(wifi)) setWiFiColor();
-                if (uri.equals(sound)) setSoundColor();
-                if (uri.equals(flash)) setFlashlightColor();
-                if (uri.equals(bt)) setBluetoothColor();
-                if (uri.equals(airplane)) setAirplaneModeColor();
-
-                if (uri.equals(wifiShown)
-                        || uri.equals(soundShown)
-                        || uri.equals(flashShown)
-                        || uri.equals(btShown)
-                        || uri.equals(airplaneShown)
-                        || uri.equals(toggleOrder)) {
-                    addInSetOrder();
-                }
+                        if (uri.equals(wifiShown)
+                                || uri.equals(soundShown)
+                                || uri.equals(flashShown)
+                                || uri.equals(btShown)
+                                || uri.equals(airplaneShown)
+                                || uri.equals(toggleOrder)) {
+                            addInSetOrder();
+                        }
+                    }
+                });
             }
         };
 

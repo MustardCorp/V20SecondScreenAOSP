@@ -8,9 +8,21 @@ import android.content.res.ColorStateList;
 import android.database.ContentObserver;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.media.MediaMetadata;
+import android.media.session.MediaController;
+import android.media.session.MediaSessionManager;
+import android.media.session.PlaybackState;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
+import android.support.annotation.MainThread;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v7.media.MediaControlIntent;
+import android.util.Log;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.OrientationEventListener;
 import android.view.Surface;
@@ -22,8 +34,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import xyz.mustardcorp.secondscreen.R;
+import xyz.mustardcorp.secondscreen.misc.Util;
 import xyz.mustardcorp.secondscreen.services.SignBoardService;
 
 /**
@@ -42,6 +56,8 @@ public class Music extends BaseLayout
     private BroadcastReceiver playingMusicReceiver;
 
     private Handler mHandler;
+    private final MediaSessionManager sessionManager;
+    private List<MediaController> controllers;
 
     public Music(Context context) {
         super(context);
@@ -49,6 +65,7 @@ public class Music extends BaseLayout
         mView = (LinearLayout) LayoutInflater.from(mContext).inflate(R.layout.layout_music, null, false);
         display = ((WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         audioManager = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+        sessionManager = (MediaSessionManager) getContext().getSystemService(Context.MEDIA_SESSION_SERVICE);
 
         mHandler = SignBoardService.mMusicHandler;
 
@@ -71,6 +88,7 @@ public class Music extends BaseLayout
         }
 
         reverseViews(rotation);
+        registerMediaCallbacks();
         setColorsAndStates();
         listenForColorChangeOrMusicChange();
 
@@ -101,19 +119,60 @@ public class Music extends BaseLayout
         playingMusicReceiver = new BroadcastReceiver()
         {
             @Override
-            public void onReceive(Context context, Intent intent)
+            public void onReceive(Context context, final Intent intent)
             {
-                setColorsAndStates();
+                new Handler(Looper.getMainLooper()).post(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Log.e("MustardCorp Music", intent.getAction());
+                        setColorsAndStates();
+                    }
+                });
             }
         };
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.android.flash.playstatechanged");
-        filter.addAction("fm.last.android.metachanged");
-        filter.addAction("fm.last.android.playbackpaused");
-        filter.addAction("fm.last.android.playbackcomplete");
+        filter.addAction(MediaControlIntent.ACTION_PLAY);
+        filter.addAction(MediaControlIntent.ACTION_PAUSE);
+        filter.addAction(MediaControlIntent.ACTION_STOP);
 
-        mContext.registerReceiver(playingMusicReceiver, filter);
+//        mContext.registerReceiver(playingMusicReceiver, filter);
+
+        sessionManager.addOnActiveSessionsChangedListener(new MediaSessionManager.OnActiveSessionsChangedListener()
+        {
+            @Override
+            public void onActiveSessionsChanged(@Nullable List<MediaController> list)
+            {
+                registerMediaCallbacks();
+            }
+        }, null);
+    }
+
+    private void registerMediaCallbacks() {
+        controllers = sessionManager.getActiveSessions(null);
+
+        MediaController.Callback callback = new MediaController.Callback()
+        {
+            @Override
+            @MainThread
+            public void onPlaybackStateChanged(@NonNull PlaybackState state)
+            {
+                new Handler(Looper.getMainLooper()).postDelayed(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        setColorsAndStates();
+                    }
+                }, 300);
+            }
+        };
+
+        for (MediaController controller : controllers) {
+            controller.registerCallback(callback);
+        }
     }
 
     private void setColorsAndStates() {
@@ -121,6 +180,7 @@ public class Music extends BaseLayout
         ImageView playpause = mView.findViewById(R.id.play_pause);
         ImageView forward = mView.findViewById(R.id.skip_forward);
         TextView song = mView.findViewById(R.id.song_info);
+        song.setSelected(true);
 
         int backColor = Settings.Global.getInt(mContext.getContentResolver(), "skip_prev_color", Color.WHITE);
         int playpauseColor = Settings.Global.getInt(mContext.getContentResolver(), "play_pause_color", Color.WHITE);
@@ -136,12 +196,51 @@ public class Music extends BaseLayout
         playpause.setImageDrawable(mContext.getResources().getDrawable(isMusicPlaying() ? R.drawable.ic_pause_black_24dp : R.drawable.ic_play_arrow_black_24dp, null));
         forward.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_skip_next_black_24dp, null));
 
+        if (controllers != null) {
+            String title = controllers.get(0).getMetadata().getString(MediaMetadata.METADATA_KEY_TITLE);
+            String artist = controllers.get(0).getMetadata().getString(MediaMetadata.METADATA_KEY_ARTIST);
+
+            final String packageName = controllers.get(0).getPackageName();
+
+            StringBuilder info = new StringBuilder();
+
+            if (title != null) {
+                info.append(title);
+
+                if (artist != null) {
+                    info.append(" — ").append(artist);
+                }
+            } else {
+                info.append(song.getText());
+            }
+
+            song.setText(info.toString());
+
+            if (packageName != null) {
+                mView.setOnLongClickListener(new View.OnLongClickListener()
+                {
+                    @Override
+                    public boolean onLongClick(View view)
+                    {
+                        Util.openApp(getContext(), packageName);
+                        return true;
+                    }
+                });
+            }
+        }
+
         back.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View view)
             {
+                long eventtime = SystemClock.uptimeMillis();
 
+                KeyEvent downEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PREVIOUS, 0);
+                audioManager.dispatchMediaKeyEvent(downEvent);
+
+                KeyEvent upEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PREVIOUS, 0);
+                audioManager.dispatchMediaKeyEvent(upEvent);
             }
         });
 
@@ -150,7 +249,13 @@ public class Music extends BaseLayout
             @Override
             public void onClick(View view)
             {
+                long eventtime = SystemClock.uptimeMillis();
 
+                KeyEvent downEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0);
+                audioManager.dispatchMediaKeyEvent(downEvent);
+
+                KeyEvent upEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, 0);
+                audioManager.dispatchMediaKeyEvent(upEvent);
             }
         });
 
@@ -159,12 +264,19 @@ public class Music extends BaseLayout
             @Override
             public void onClick(View view)
             {
+                long eventtime = SystemClock.uptimeMillis();
 
+                KeyEvent downEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_NEXT, 0);
+                audioManager.dispatchMediaKeyEvent(downEvent);
+
+                KeyEvent upEvent = new KeyEvent(eventtime, eventtime, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_NEXT, 0);
+                audioManager.dispatchMediaKeyEvent(upEvent);
             }
         });
     }
 
     private boolean isMusicPlaying() {
+        Log.e("MustardCorp", "isMusicActive()" + audioManager.isMusicActive());
         return audioManager.isMusicActive();
     }
 

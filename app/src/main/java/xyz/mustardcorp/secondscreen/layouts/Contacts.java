@@ -6,6 +6,7 @@ import android.database.ContentObserver;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.ContactsContract;
 import android.provider.Settings;
 import android.view.Display;
@@ -136,7 +137,14 @@ public class Contacts extends BaseLayout implements View.OnClickListener, View.O
                         uri.equals(contact6) ||
                         uri.equals(contact7) ||
                         uri.equals(contact8)) {
-                    addIcons();
+                    new Handler(Looper.getMainLooper()).post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            addIcons();
+                        }
+                    });
                 }
             }
         };

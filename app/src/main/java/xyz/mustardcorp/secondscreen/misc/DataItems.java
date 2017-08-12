@@ -44,8 +44,8 @@ public class DataItems
             add(info);
             add(toggles);
             add(apps);
-//            add(flash);
-//            add(airplane);
+            add(music);
+//            add(recents);
             add(contacts);
         }};
         if (saved.equals(Values.defaultLoad)) {

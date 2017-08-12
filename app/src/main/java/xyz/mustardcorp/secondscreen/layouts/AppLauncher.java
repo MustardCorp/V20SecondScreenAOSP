@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -140,7 +141,14 @@ public class AppLauncher extends BaseLayout implements View.OnClickListener, Vie
                 Uri app6 = Settings.Global.getUriFor(APP_6);
 
                 if (uri.equals(app1) || uri.equals(app2) || uri.equals(app3) || uri.equals(app4) || uri.equals(app5) || uri.equals(app6)) {
-                    addIcons();
+                    new Handler(Looper.getMainLooper()).post(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            addIcons();
+                        }
+                    });
                 }
             }
         };
